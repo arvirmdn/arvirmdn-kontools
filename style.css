@@ -721,10 +721,14 @@ body {
     top: 0;
     bottom: 0;
     z-index: 100;
+    transform: translateX(0);
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.35);
+  }
+  .sidebar.collapsed {
+    margin-left: 0;
     transform: translateX(-100%);
   }
   .sidebar.open { transform: translateX(0); }
-  .sidebar.collapsed { margin-left: 0; transform: translateX(-100%); }
   .content { padding: 16px; }
   .tool-input-group { flex-direction: column; }
   .tool-btn { width: 100%; justify-content: center; }
