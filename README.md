@@ -1,4 +1,4 @@
-# arvirmdn kontools v0.1
+# arvirmdn kontools v0.2
 
 Website premium dengan login, daftar akun, session, dashboard, dan sidebar responsive. Project ini sudah disiapkan agar bisa langsung di-upload ke GitHub dan di-deploy ke Railway.
 
@@ -11,6 +11,7 @@ Website premium dengan login, daftar akun, session, dashboard, dan sidebar respo
 - Tombol frontend menggunakan `addEventListener` (tanpa inline `onclick`)
 - Endpoint health check: `/health`
 - Tidak membutuhkan `dotenv` di Railway
+- Upload Status WA HD: pilih media lalu buka menu Bagikan Android untuk memilih WhatsApp → Status saya
 
 ## Jalankan di Android/Termux
 
@@ -78,4 +79,8 @@ Versi ini menyimpan akun di `data/users.json`. Ini cocok untuk testing/prototype
 
 
 ## Admin
-Email admin bawaan: `telokaspeanget999@gmail.com`. Akun dengan email ini otomatis mendapat akses admin dan bypass pengecekan member group. Jika `ADMIN_EMAIL` di Railway diisi, nilainya dapat menggantikan email bawaan tersebut.
+Email admin bawaan: `telokaspeanget999@gmail.com`. Akun dengan email ini otomatis mendapat akses admin. Jika `ADMIN_EMAIL` di Railway diisi, nilainya dapat menggantikan email bawaan tersebut.
+
+
+### Catatan Android
+Tombol Buat Status menggunakan Web Share dengan file agar WhatsApp dapat dibuka sebagai tujuan share. Android/Chrome tidak menyediakan deep-link resmi dari website untuk langsung membuka composer Status WhatsApp dengan file terlampir, jadi pemilihan Status saya tetap dilakukan di WhatsApp.

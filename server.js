@@ -3,8 +3,6 @@ const session = require("express-session");
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const path = require("path");
-const multer = require("multer");
-const crypto = require("crypto");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,17 +24,6 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 app.use(express.json({ limit: "4mb" }));
 app.use(express.urlencoded({ extended: true }));
-
-const uploadDir = path.join(DATA_DIR, "uploads");
-fs.mkdirSync(uploadDir, { recursive: true });
-const waUpload = multer({
-  dest: uploadDir,
-  limits: { fileSize: 200 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = /^(image\/(jpeg|png|webp)|video\/(mp4|quicktime|webm))$/.test(file.mimetype);
-    cb(allowed ? null : new Error("Format media tidak didukung."), allowed);
-  }
-});
 
 app.use(session({
   secret: process.env.SESSION_SECRET || "arvirmdn-premium-change-this-secret",
@@ -168,161 +155,6 @@ app.post("/api/profile/password", requireAuth, async (req, res) => {
   users[index].passwordHash = await bcrypt.hash(newPassword, 12);
   writeUsers(users);
   res.json({ ok: true, message: "Sandi berhasil diganti." });
-});
-
-function makeToken() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const bytes = crypto.randomBytes(6);
-  let out = "ARV-";
-  for (const b of bytes) out += chars[b % chars.length];
-  return out;
-}
-
-app.post("/api/wa/generate-token", requireAuth, waUpload.single("media"), async (req, res) => {
-  const cleanup = () => {
-    if (req.file?.path) fs.promises.unlink(req.file.path).catch(() => {});
-  };
-  try {
-    if (!req.file) return res.status(400).json({ ok:false, code:"MEDIA_REQUIRED", message:"Media belum dipilih." });
-    const token = makeToken();
-    const botApiUrl = String(process.env.BOT_API_URL || "").replace(/\/$/, "");
-    if (!botApiUrl) { cleanup(); return res.status(503).json({ ok:false, code:"BOT_NOT_CONNECTED", message:"Bot WhatsApp belum terhubung." }); }
-
-    const boundary = `----ARVIRMDN${Date.now().toString(16)}`;
-    const safeName = req.file.originalname.replace(/["\\]/g, "_");
-    const head = Buffer.from(
-      `--${boundary}\r\n` +
-      `Content-Disposition: form-data; name="token"\r\n\r\n${token}\r\n` +
-      `--${boundary}\r\n` +
-      `Content-Disposition: form-data; name="media"; filename="${safeName}"\r\n` +
-      `Content-Type: ${req.file.mimetype}\r\n\r\n`
-    );
-    const fileBuffer = await fs.promises.readFile(req.file.path);
-    const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
-    const body = Buffer.concat([head, fileBuffer, tail]);
-    const botResponse = await fetch(`${botApiUrl}/token-media`, {
-      method:"POST",
-      headers:{ "Content-Type": `multipart/form-data; boundary=${boundary}`, "Content-Length": String(body.length) },
-      body
-    });
-    const data = await botResponse.json().catch(() => ({}));
-    cleanup();
-    if (!botResponse.ok || data.ok !== true) {
-      return res.status(botResponse.status || 502).json({ ok:false, code:data.code || "BOT_TOKEN_ERROR", message:data.message || "Bot gagal menerima media." });
-    }
-    return res.json({ ok:true, token, expiresIn: data.expiresIn || 15 * 60, message:"Token dibuat dan media sudah dikirim ke bot." });
-  } catch (error) {
-    cleanup();
-    console.error("GENERATE TOKEN ERROR:", error);
-    return res.status(500).json({ ok:false, code:"GENERATE_TOKEN_FAILED", message:error.message || "Gagal membuat token." });
-  }
-});
-
-app.post("/api/wa/token-media", requireAuth, waUpload.single("media"), async (req, res) => {
-  const cleanup = () => {
-    if (req.file?.path) fs.promises.unlink(req.file.path).catch(() => {});
-  };
-  try {
-    const token = String(req.body.token || "").trim().toUpperCase();
-    if (!/^ARV-[A-Z0-9]{6}$/.test(token)) {
-      cleanup();
-      return res.status(400).json({ ok:false, code:"INVALID_TOKEN", message:"Token tidak valid." });
-    }
-    if (!req.file) {
-      return res.status(400).json({ ok:false, code:"MEDIA_REQUIRED", message:"Media belum dipilih." });
-    }
-
-    const botApiUrl = String(process.env.BOT_API_URL || "").replace(/\/$/, "");
-    if (!botApiUrl) {
-      cleanup();
-      return res.status(503).json({ ok:false, code:"BOT_NOT_CONNECTED", message:"Bot WhatsApp belum terhubung." });
-    }
-
-    const boundary = `----ARVIRMDN${Date.now().toString(16)}`;
-    const safeName = req.file.originalname.replace(/["\\]/g, "_");
-    const head = Buffer.from(
-      `--${boundary}\r\n` +
-      `Content-Disposition: form-data; name="token"\r\n\r\n${token}\r\n` +
-      `--${boundary}\r\n` +
-      `Content-Disposition: form-data; name="media"; filename="${safeName}"\r\n` +
-      `Content-Type: ${req.file.mimetype}\r\n\r\n`
-    );
-    const fileBuffer = await fs.promises.readFile(req.file.path);
-    const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
-    const body = Buffer.concat([head, fileBuffer, tail]);
-
-    const botResponse = await fetch(`${botApiUrl}/token-media`, {
-      method:"POST",
-      headers:{ "Content-Type": `multipart/form-data; boundary=${boundary}`, "Content-Length": String(body.length) },
-      body
-    });
-    const data = await botResponse.json().catch(() => ({}));
-    cleanup();
-    if (!botResponse.ok) {
-      return res.status(botResponse.status).json({ ok:false, code:data.code || "BOT_TOKEN_ERROR", message:data.message || "Bot gagal menerima media." });
-    }
-    return res.json({ ...data, token });
-  } catch (error) {
-    cleanup();
-    console.error("TOKEN MEDIA ERROR:", error);
-    return res.status(500).json({ ok:false, code:"TOKEN_MEDIA_FAILED", message:error.message || "Gagal mengirim media ke bot." });
-  }
-});
-
-app.post("/api/wa/check-member", requireAuth, async (req, res) => {
-  // Admin selalu mendapat akses tanpa perlu terdaftar sebagai member group.
-  if (isAdminUser(req.session.user)) {
-    return res.json({
-      ok: true,
-      member: true,
-      admin: true,
-      code: "ADMIN_BYPASS",
-      message: "Akses admin diberikan tanpa pengecekan member group."
-    });
-  }
-
-  const phone = String(req.body.phone || "").replace(/\D/g, "");
-  if (!/^628\d{7,13}$/.test(phone)) {
-    return res.status(400).json({ ok: false, code: "INVALID_PHONE", message: "Nomor WhatsApp tidak valid." });
-  }
-
-  const botApiUrl = String(process.env.BOT_API_URL || "").replace(/\/$/, "");
-  const groupId = String(process.env.BOT_GROUP_ID || "");
-
-  // Bot akan dipasang pada tahap berikutnya. Jika URL bot belum diisi,
-  // jangan menganggap nomor ada/tidak ada di group secara palsu.
-  if (!botApiUrl) {
-    return res.status(503).json({
-      ok: false,
-      code: "BOT_NOT_CONNECTED",
-      message: "Bot WhatsApp belum terhubung."
-    });
-  }
-
-  try {
-    const botResponse = await fetch(`${botApiUrl}/check-member`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone, groupId })
-    });
-    const data = await botResponse.json().catch(() => ({}));
-
-    if (!botResponse.ok) {
-      return res.status(botResponse.status).json({
-        ok: false,
-        code: data.code || "BOT_ERROR",
-        message: data.message || "Bot gagal memeriksa group."
-      });
-    }
-
-    return res.json(data);
-  } catch (error) {
-    return res.status(502).json({
-      ok: false,
-      code: "BOT_UNREACHABLE",
-      message: "Bot WhatsApp tidak dapat dihubungi."
-    });
-  }
 });
 
 app.post("/api/logout", (req, res) => {
