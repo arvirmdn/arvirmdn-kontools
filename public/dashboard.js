@@ -233,14 +233,28 @@ function processWaHdFile(file) {
 }
 async function generateWaToken() {
   if (!waSelectedFile) return showToast("Pilih foto atau video terlebih dahulu.");
-  waGenerateTokenBtn.disabled=true; waTokenStatus.textContent="Membuat token…";
+  waGenerateTokenBtn.disabled=true; waBotBtn.disabled=true; waTokenStatus.textContent="Membuat token dan mengirim media ke bot…";
+  setTokenStatus("checking","Mengirim media ke nomor bot…");
   try {
-    const r=await fetch("/api/wa/generate-token",{method:"POST",credentials:"same-origin"}); const d=await r.json().catch(()=>({}));
+    const form=new FormData();
+    form.append("media",waSelectedFile,waSelectedFile.name);
+    const r=await fetch("/api/wa/generate-token",{method:"POST",credentials:"same-origin",body:form});
+    const d=await r.json().catch(()=>({}));
     if(!r.ok||!d.ok) throw new Error(d.message||"Gagal membuat token.");
-    waToken=d.token; waTokenValue.textContent=waToken; waTokenStatus.textContent="Token siap. Tekan Jadi Bot untuk mengirim media ke nomor bot.";
-    waBotBtn.disabled=false; waHdResult.hidden=false; waSendTitle.textContent="Token siap"; waSendDetail.textContent=`${waToken} • kirim token ini ke group setelah media masuk ke bot.`;
-    setTokenStatus("success","✓ Token berhasil dibuat"); showToast("Token berhasil dibuat.");
-  } catch(e) { waGenerateTokenBtn.disabled=false; waTokenStatus.textContent="Gagal membuat token."; setTokenStatus("error",`✕ ${e.message}`); showToast(e.message); }
+    waToken=d.token;
+    waTokenValue.textContent=waToken;
+    waTokenStatus.textContent="Token siap. Langsung kirim token ini ke group WhatsApp.";
+    waHdResult.hidden=false;
+    waSendTitle.textContent="Token siap";
+    waSendDetail.textContent=`${waToken} • media sudah diterima bot. Kirim token ini ke group WhatsApp.`;
+    setTokenStatus("success","✓ Token dibuat • media sudah masuk ke bot");
+    showToast("Token siap. Kirim ke group WhatsApp.");
+  } catch(e) {
+    waGenerateTokenBtn.disabled=false;
+    waTokenStatus.textContent="Gagal membuat token.";
+    setTokenStatus("error",`✕ ${e.message}`);
+    showToast(e.message);
+  }
 }
 async function sendWaTokenToBot() {
   if(!waSelectedFile||!waToken) return showToast("Generate token terlebih dahulu.");
