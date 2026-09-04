@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#090b12">
-  <title>ARVIR — Dashboard</title>
+  <title>arvirmdn kontools v0.1 — Dashboard</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body class="dashboard-page">
@@ -12,7 +12,7 @@
 
   <aside class="sidebar" id="sidebar">
     <div class="side-top">
-      <a class="side-brand" href="/dashboard"><span>A</span><b>ARVIR</b></a>
+      <a class="side-brand" href="/dashboard"><span>A</span><b>ARVIRMDN</b></a>
       <button class="icon-btn side-close" id="closeSidebar" type="button" aria-label="Tutup sidebar">×</button>
     </div>
 
@@ -49,42 +49,56 @@
 
     <main class="content">
       <section id="overviewPage" class="page active">
-        <div class="hero-card overview-hero">
+        <div class="overview-welcome">
           <div>
             <span class="eyebrow">OVERVIEW</span>
-            <h1>Halo, <span id="heroName">User</span>.</h1>
-            <p>Selamat datang kembali. Kelola akun dan akses semua fitur ARVIR dari satu tempat.</p>
+            <h1>Selamat datang kembali, <span id="heroName">User</span>.</h1>
+            <p>Kelola akun dan nikmati semua fitur ARVIRMDN dari satu tempat.</p>
           </div>
-          <div class="hero-orb">A</div>
         </div>
 
-        <div class="section-head overview-section-head">
-          <div><span class="eyebrow">ACCOUNT STATUS</span><h2>Ringkasan akun</h2></div>
+        <div class="stats-grid overview-stats">
+          <article class="stat-card premium-stat"><span class="stat-icon">◎</span><div><small>STATUS AKUN</small><strong>Aktif</strong><em>Akun aman</em></div></article>
+          <article class="stat-card premium-stat"><span class="stat-icon">♛</span><div><small>AKSES</small><strong>Premium</strong><em>Akses penuh</em></div></article>
+          <article class="stat-card premium-stat"><span class="stat-icon">⌁</span><div><small>STATUS SISTEM</small><strong>Online</strong><em>Sistem normal</em></div></article>
         </div>
 
-        <div class="stats-grid">
-          <article class="stat-card"><span class="stat-icon">✓</span><div><strong>Aktif</strong><small>Status akun</small></div></article>
-          <article class="stat-card"><span class="stat-icon">✦</span><div><strong>Premium</strong><small>Akses platform</small></div></article>
-          <article class="stat-card"><span class="stat-icon">●</span><div><strong>Online</strong><small>Status sistem</small></div></article>
-        </div>
-
-        <div class="section-head overview-section-head activity-head">
-          <div><span class="eyebrow">ARVIR SYSTEM</span><h2>Semua sistem siap digunakan</h2></div>
-        </div>
-        <div class="overview-animation-card">
+        <div class="overview-animation-card premium-live-card">
           <div class="animation-copy">
             <span class="live-pill"><i></i> LIVE SYSTEM</span>
-            <h3>Selamat datang di ARVIR</h3>
-            <p>Platform kamu sedang berjalan normal. Nikmati dashboard yang cepat, rapi, dan siap digunakan.</p>
-            <div class="live-metrics"><span><b>99.9%</b> Uptime</span><span><b>Online</b> Server</span><span><b>Ready</b> Account</span></div>
+            <h3>arvirmdn kontools v0.1</h3>
+            <p>Semua sistem berjalan dengan normal dan siap digunakan.</p>
+            <div class="live-status-line"><span></span> System is running smoothly</div>
           </div>
           <div class="system-animation" aria-hidden="true">
             <div class="orbit orbit-one"></div>
             <div class="orbit orbit-two"></div>
-            <div class="orbit orbit-three"></div>
             <div class="core">A</div>
-            <span class="particle p1"></span><span class="particle p2"></span><span class="particle p3"></span><span class="particle p4"></span>
+            <span class="particle p1"></span><span class="particle p2"></span><span class="particle p3"></span>
           </div>
+        </div>
+
+        <div class="overview-metrics">
+          <div><span class="metric-icon">◷</span><small>UPTIME</small><strong>99.9%</strong><em>Sistem stabil</em></div>
+          <div><span class="metric-icon">▣</span><small>SERVER</small><strong>Online</strong><em>Lokasi aktif</em></div>
+          <div><span class="metric-icon">♢</span><small>SECURITY</small><strong>Aman</strong><em>Proteksi aktif</em></div>
+          <div><span class="metric-icon">ϟ</span><small>PERFORMANCE</small><strong>Optimal</strong><em>Kinerja baik</em></div>
+        </div>
+
+        <div class="overview-bottom-grid">
+          <article class="overview-info-card">
+            <div class="info-card-head"><span>⌁</span><b>AKTIVITAS TERBARU</b></div>
+            <div class="activity-list">
+              <div><i></i><p><strong>Login berhasil</strong><small>Akun berhasil masuk</small></p><time>Now</time></div>
+              <div><i></i><p><strong>Mengakses Overview</strong><small>Dashboard utama dibuka</small></p><time>Now</time></div>
+              <div><i></i><p><strong>Sistem online</strong><small>Semua layanan normal</small></p><time>Live</time></div>
+            </div>
+          </article>
+          <article class="overview-info-card announcement-card">
+            <div class="info-card-head"><span>♢</span><b>PENGUMUMAN</b></div>
+            <h3>Selamat datang di <span>arvirmdn kontools v0.1</span></h3>
+            <p>Pantau informasi terbaru dan nikmati pengalaman dashboard yang lebih rapi.</p>
+          </article>
         </div>
       </section>
 
