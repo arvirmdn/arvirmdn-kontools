@@ -22,11 +22,11 @@ function writeUsers(users) {
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "4mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || "arvir-premium-change-this-secret",
+  secret: process.env.SESSION_SECRET || "arvirmdn-premium-change-this-secret",
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -49,6 +49,10 @@ function cleanEmail(value) {
 
 function validEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validProfilePhoto(photo) {
+  return typeof photo === "string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(photo) && photo.length <= 4 * 1024 * 1024;
 }
 
 function requireAuth(req, res, next) {
@@ -87,7 +91,7 @@ app.post("/api/register", async (req, res) => {
   users.push(user);
   writeUsers(users);
 
-  req.session.user = { id: user.id, name: user.name, email: user.email };
+  req.session.user = { id: user.id, name: user.name, email: user.email, profilePhoto: user.profilePhoto || "" };
   res.json({ ok: true, user: req.session.user });
 });
 
@@ -100,8 +104,41 @@ app.post("/api/login", async (req, res) => {
     return res.status(401).json({ ok: false, message: "Email atau password salah." });
   }
 
-  req.session.user = { id: user.id, name: user.name, email: user.email };
+  req.session.user = { id: user.id, name: user.name, email: user.email, profilePhoto: user.profilePhoto || "" };
   res.json({ ok: true, user: req.session.user });
+});
+
+app.post("/api/profile/photo", requireAuth, (req, res) => {
+  const photo = req.body.photo;
+  if (!validProfilePhoto(photo)) {
+    return res.status(400).json({ ok: false, message: "Foto tidak valid atau terlalu besar." });
+  }
+
+  const users = readUsers();
+  const index = users.findIndex(u => u.id === req.session.user.id);
+  if (index === -1) return res.status(404).json({ ok: false, message: "Akun tidak ditemukan." });
+
+  users[index].profilePhoto = photo;
+  writeUsers(users);
+  req.session.user.profilePhoto = photo;
+  res.json({ ok: true, user: req.session.user });
+});
+
+app.post("/api/profile/password", requireAuth, async (req, res) => {
+  const currentPassword = String(req.body.currentPassword || "");
+  const newPassword = String(req.body.newPassword || "");
+  if (newPassword.length < 6) return res.status(400).json({ ok: false, message: "Sandi baru minimal 6 karakter." });
+
+  const users = readUsers();
+  const index = users.findIndex(u => u.id === req.session.user.id);
+  if (index === -1) return res.status(404).json({ ok: false, message: "Akun tidak ditemukan." });
+
+  const matches = await bcrypt.compare(currentPassword, users[index].passwordHash);
+  if (!matches) return res.status(401).json({ ok: false, message: "Sandi saat ini salah." });
+
+  users[index].passwordHash = await bcrypt.hash(newPassword, 12);
+  writeUsers(users);
+  res.json({ ok: true, message: "Sandi berhasil diganti." });
 });
 
 app.post("/api/logout", (req, res) => {
@@ -120,5 +157,5 @@ app.get("*splat", (req, res) => {
 });
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`ARVIR Premium Web running on port ${PORT}`);
+  console.log(`ARVIRMDN Premium Web running on port ${PORT}`);
 });
