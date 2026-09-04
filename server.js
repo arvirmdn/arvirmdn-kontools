@@ -178,8 +178,44 @@ function makeToken() {
   return out;
 }
 
-app.post("/api/wa/generate-token", requireAuth, (req, res) => {
-  res.json({ ok: true, token: makeToken(), expiresIn: 15 * 60 });
+app.post("/api/wa/generate-token", requireAuth, waUpload.single("media"), async (req, res) => {
+  const cleanup = () => {
+    if (req.file?.path) fs.promises.unlink(req.file.path).catch(() => {});
+  };
+  try {
+    if (!req.file) return res.status(400).json({ ok:false, code:"MEDIA_REQUIRED", message:"Media belum dipilih." });
+    const token = makeToken();
+    const botApiUrl = String(process.env.BOT_API_URL || "").replace(/\/$/, "");
+    if (!botApiUrl) { cleanup(); return res.status(503).json({ ok:false, code:"BOT_NOT_CONNECTED", message:"Bot WhatsApp belum terhubung." }); }
+
+    const boundary = `----ARVIRMDN${Date.now().toString(16)}`;
+    const safeName = req.file.originalname.replace(/["\\]/g, "_");
+    const head = Buffer.from(
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="token"\r\n\r\n${token}\r\n` +
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="media"; filename="${safeName}"\r\n` +
+      `Content-Type: ${req.file.mimetype}\r\n\r\n`
+    );
+    const fileBuffer = await fs.promises.readFile(req.file.path);
+    const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
+    const body = Buffer.concat([head, fileBuffer, tail]);
+    const botResponse = await fetch(`${botApiUrl}/token-media`, {
+      method:"POST",
+      headers:{ "Content-Type": `multipart/form-data; boundary=${boundary}`, "Content-Length": String(body.length) },
+      body
+    });
+    const data = await botResponse.json().catch(() => ({}));
+    cleanup();
+    if (!botResponse.ok || data.ok !== true) {
+      return res.status(botResponse.status || 502).json({ ok:false, code:data.code || "BOT_TOKEN_ERROR", message:data.message || "Bot gagal menerima media." });
+    }
+    return res.json({ ok:true, token, expiresIn: data.expiresIn || 15 * 60, message:"Token dibuat dan media sudah dikirim ke bot." });
+  } catch (error) {
+    cleanup();
+    console.error("GENERATE TOKEN ERROR:", error);
+    return res.status(500).json({ ok:false, code:"GENERATE_TOKEN_FAILED", message:error.message || "Gagal membuat token." });
+  }
 });
 
 app.post("/api/wa/token-media", requireAuth, waUpload.single("media"), async (req, res) => {
