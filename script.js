@@ -1,6 +1,32 @@
 // ===== KONFIGURASI BACKEND =====
 // Railway akan otomatis detect domain sendiri
-const API_URL = '';  // Kosong = same origin (frontend & backend di domain yang sama)
+const API_URL = '';  // Kosong = same origin
+
+// ===== DEVICE FINGERPRINT =====
+function getDeviceFingerprint() {
+  // Kombinasi beberapa data device untuk membuat fingerprint unik
+  const raw = [
+    navigator.userAgent,
+    navigator.platform,
+    navigator.language,
+    screen.width + 'x' + screen.height,
+    screen.colorDepth,
+    new Date().getTimezoneOffset(),
+    navigator.hardwareConcurrency || 'unknown',
+    navigator.deviceMemory || 'unknown'
+  ].join('::');
+
+  // Simple hash function
+  let hash = 0;
+  for (let i = 0; i < raw.length; i++) {
+    const char = raw.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return 'fp_' + Math.abs(hash).toString(16);
+}
+
+const DEVICE_FINGERPRINT = getDeviceFingerprint();
 
 // ===== PARTICLES =====
 (function() {
@@ -112,7 +138,7 @@ async function doAuth(action) {
     try {
       await api('/api/register', {
         method: 'POST',
-        body: JSON.stringify({ username: user, password: pass })
+        body: JSON.stringify({ username: user, password: pass, device_fingerprint: DEVICE_FINGERPRINT })
       });
       alert('Akun berhasil dibuat! Silakan masuk.');
       switchTab('login');

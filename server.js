@@ -33,6 +33,7 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
       username TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       email TEXT,
+      device_fingerprint TEXT UNIQUE NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`, (err) => {
       if (err) console.error('Create table error:', err);
@@ -58,30 +59,40 @@ function authMiddleware(req, res, next) {
 
 // Register
 app.post('/api/register', (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Username dan password wajib diisi' });
+  const { username, password, device_fingerprint } = req.body;
+  if (!username || !password || !device_fingerprint) {
+    return res.status(400).json({ error: 'Data tidak lengkap' });
   }
   if (password.length < 4) {
     return res.status(400).json({ error: 'Password minimal 4 karakter' });
   }
 
-  const hash = bcrypt.hashSync(password, 10);
-  const email = username.toLowerCase().replace(/[^a-z0-9]/g, '') + '@arvirmdn.local';
-
-  db.run(
-    'INSERT INTO users (username, password, email) VALUES (?, ?, ?)',
-    [username, hash, email],
-    function(err) {
-      if (err) {
-        if (err.message.includes('UNIQUE constraint failed')) {
-          return res.status(400).json({ error: 'Username sudah terdaftar' });
-        }
-        return res.status(500).json({ error: 'Gagal mendaftar: ' + err.message });
-      }
-      res.json({ success: true, message: 'Akun berhasil dibuat' });
+  // Cek apakah device sudah pernah daftar
+  db.get('SELECT username FROM users WHERE device_fingerprint = ?', [device_fingerprint], (err, existing) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    if (existing) {
+      return res.status(400).json({ 
+        error: 'Perangkat ini sudah terdaftar dengan akun "' + existing.username + '". Satu perangkat hanya boleh 1 akun.' 
+      });
     }
-  );
+
+    const hash = bcrypt.hashSync(password, 10);
+    const email = username.toLowerCase().replace(/[^a-z0-9]/g, '') + '@arvirmdn.local';
+
+    db.run(
+      'INSERT INTO users (username, password, email, device_fingerprint) VALUES (?, ?, ?, ?)',
+      [username, hash, email, device_fingerprint],
+      function(err) {
+        if (err) {
+          if (err.message.includes('UNIQUE constraint failed') && err.message.includes('users.username')) {
+            return res.status(400).json({ error: 'Username sudah terdaftar' });
+          }
+          return res.status(500).json({ error: 'Gagal mendaftar: ' + err.message });
+        }
+        res.json({ success: true, message: 'Akun berhasil dibuat' });
+      }
+    );
+  });
 });
 
 // Login
@@ -155,5 +166,4 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
   console.log('arvirmdn kontools v0.1 running on port', PORT);
   console.log('Database:', DB_PATH);
-  console.log('JWT_SECRET:', JWT_SECRET.slice(0, 10) + '...');
 });
