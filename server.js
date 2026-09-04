@@ -55,6 +55,22 @@ function validProfilePhoto(photo) {
   return typeof photo === "string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(photo) && photo.length <= 4 * 1024 * 1024;
 }
 
+function isAdminUser(user) {
+  if (!user) return false;
+  const adminEmail = cleanEmail(process.env.ADMIN_EMAIL || "telokaspeanget999@gmail.com");
+  return user.role === "admin" || (!!adminEmail && cleanEmail(user.email) === adminEmail);
+}
+
+function sessionUser(user) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: isAdminUser(user) ? "admin" : "member",
+    profilePhoto: user.profilePhoto || ""
+  };
+}
+
 function requireAuth(req, res, next) {
   if (!req.session.user) return res.status(401).json({ ok: false, message: "Silakan masuk terlebih dahulu." });
   next();
@@ -91,7 +107,7 @@ app.post("/api/register", async (req, res) => {
   users.push(user);
   writeUsers(users);
 
-  req.session.user = { id: user.id, name: user.name, email: user.email, profilePhoto: user.profilePhoto || "" };
+  req.session.user = sessionUser(user);
   res.json({ ok: true, user: req.session.user });
 });
 
@@ -104,7 +120,7 @@ app.post("/api/login", async (req, res) => {
     return res.status(401).json({ ok: false, message: "Email atau password salah." });
   }
 
-  req.session.user = { id: user.id, name: user.name, email: user.email, profilePhoto: user.profilePhoto || "" };
+  req.session.user = sessionUser(user);
   res.json({ ok: true, user: req.session.user });
 });
 
@@ -139,6 +155,62 @@ app.post("/api/profile/password", requireAuth, async (req, res) => {
   users[index].passwordHash = await bcrypt.hash(newPassword, 12);
   writeUsers(users);
   res.json({ ok: true, message: "Sandi berhasil diganti." });
+});
+
+app.post("/api/wa/check-member", requireAuth, async (req, res) => {
+  // Admin selalu mendapat akses tanpa perlu terdaftar sebagai member group.
+  if (isAdminUser(req.session.user)) {
+    return res.json({
+      ok: true,
+      member: true,
+      admin: true,
+      code: "ADMIN_BYPASS",
+      message: "Akses admin diberikan tanpa pengecekan member group."
+    });
+  }
+
+  const phone = String(req.body.phone || "").replace(/\D/g, "");
+  if (!/^628\d{7,13}$/.test(phone)) {
+    return res.status(400).json({ ok: false, code: "INVALID_PHONE", message: "Nomor WhatsApp tidak valid." });
+  }
+
+  const botApiUrl = String(process.env.BOT_API_URL || "").replace(/\/$/, "");
+  const groupId = String(process.env.BOT_GROUP_ID || "");
+
+  // Bot akan dipasang pada tahap berikutnya. Jika URL bot belum diisi,
+  // jangan menganggap nomor ada/tidak ada di group secara palsu.
+  if (!botApiUrl) {
+    return res.status(503).json({
+      ok: false,
+      code: "BOT_NOT_CONNECTED",
+      message: "Bot WhatsApp belum terhubung."
+    });
+  }
+
+  try {
+    const botResponse = await fetch(`${botApiUrl}/check-member`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone, groupId })
+    });
+    const data = await botResponse.json().catch(() => ({}));
+
+    if (!botResponse.ok) {
+      return res.status(botResponse.status).json({
+        ok: false,
+        code: data.code || "BOT_ERROR",
+        message: data.message || "Bot gagal memeriksa group."
+      });
+    }
+
+    return res.json(data);
+  } catch (error) {
+    return res.status(502).json({
+      ok: false,
+      code: "BOT_UNREACHABLE",
+      message: "Bot WhatsApp tidak dapat dihubungi."
+    });
+  }
 });
 
 app.post("/api/logout", (req, res) => {
