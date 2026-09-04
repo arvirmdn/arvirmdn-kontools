@@ -488,6 +488,8 @@ body {
   background: rgba(10,10,15,0.85);
   backdrop-filter: blur(16px);
   animation: slideLeft 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  position: relative;
+  z-index: 40;
 }
 .topbar-left {
   display: flex;
