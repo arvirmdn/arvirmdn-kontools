@@ -1,10 +1,8 @@
 // ===== KONFIGURASI BACKEND =====
-// Railway akan otomatis detect domain sendiri
-const API_URL = '';  // Kosong = same origin
+const API_URL = '';
 
 // ===== DEVICE FINGERPRINT =====
 function getDeviceFingerprint() {
-  // Kombinasi beberapa data device untuk membuat fingerprint unik
   const raw = [
     navigator.userAgent,
     navigator.platform,
@@ -16,7 +14,6 @@ function getDeviceFingerprint() {
     navigator.deviceMemory || 'unknown'
   ].join('::');
 
-  // Simple hash function
   let hash = 0;
   for (let i = 0; i < raw.length; i++) {
     const char = raw.charCodeAt(i);
@@ -27,6 +24,14 @@ function getDeviceFingerprint() {
 }
 
 const DEVICE_FINGERPRINT = getDeviceFingerprint();
+
+// ===== XSS PROTECTION: Escape HTML =====
+function escapeHtml(text) {
+  if (typeof text !== 'string') return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
 
 // ===== PARTICLES =====
 (function() {
@@ -99,24 +104,26 @@ window.addEventListener('load', function() {
 });
 window.addEventListener('resize', updateSlider);
 
-// ===== TOASTS =====
+// ===== TOASTS (XSS-SAFE) =====
 const TOAST_ICONS = {
   success: '<path d="M20 6 9 17l-5-5"/>',
   error: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
   info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'
 };
+
 function showToast(message, type = 'info') {
   const container = document.getElementById('toastContainer');
   if (!container) return;
   const toast = document.createElement('div');
   toast.className = 'toast ' + type;
+  // Gunakan textContent untuk pesan, bukan innerHTML
   toast.innerHTML = `
     <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${TOAST_ICONS[type] || TOAST_ICONS.info}</svg>
     <span class="toast-msg"></span>
     <button class="toast-close" aria-label="Tutup">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>`;
-  toast.querySelector('.toast-msg').textContent = message;
+  toast.querySelector('.toast-msg').textContent = message; // XSS-safe
   const remove = () => {
     toast.classList.add('hide');
     setTimeout(() => toast.remove(), 250);
@@ -159,6 +166,22 @@ async function api(endpoint, options = {}) {
   return data;
 }
 
+// ===== VALIDASI PASSWORD CLIENT-SIDE =====
+function validatePassword(password) {
+  if (password.length < 8) return 'Password minimal 8 karakter';
+  if (!/[a-z]/.test(password)) return 'Password harus ada huruf kecil';
+  if (!/[A-Z]/.test(password)) return 'Password harus ada huruf besar';
+  if (!/[0-9]/.test(password)) return 'Password harus ada angka';
+  return null;
+}
+
+function validateUsername(username) {
+  if (username.length < 3) return 'Username minimal 3 karakter';
+  if (username.length > 20) return 'Username maksimal 20 karakter';
+  if (!/^[a-zA-Z0-9_.-]+$/.test(username)) return 'Username hanya huruf, angka, _, ., -';
+  return null;
+}
+
 async function doAuth(action) {
   const btn = event.currentTarget;
 
@@ -171,9 +194,12 @@ async function doAuth(action) {
     const confirm = confirmInput.value;
     clearFieldStates(userInput, passInput, confirmInput);
 
-    if (!user) { markError(userInput); showToast('Nama pengguna wajib diisi.', 'error'); return; }
-    if (!pass) { markError(passInput); showToast('Kata sandi wajib diisi.', 'error'); return; }
-    if (pass.length < 4) { markError(passInput); showToast('Kata sandi minimal 4 karakter.', 'error'); return; }
+    const userErr = validateUsername(user);
+    if (userErr) { markError(userInput); showToast(userErr, 'error'); return; }
+
+    const passErr = validatePassword(pass);
+    if (passErr) { markError(passInput); showToast(passErr, 'error'); return; }
+
     if (pass !== confirm) { markError(confirmInput); showToast('Konfirmasi kata sandi tidak cocok.', 'error'); return; }
 
     userInput.classList.add('success');
@@ -244,7 +270,6 @@ function enterDashboard(user, skipAnim) {
   const authPage = document.getElementById('authPage');
 
   if (skipAnim) {
-    // Sesi udah valid dari awal load - langsung ke dashboard, auth page nggak pernah kelihatan.
     authPage.style.display = 'none';
     document.getElementById('dashPage').classList.add('active');
     return;
@@ -303,7 +328,7 @@ async function doForgot() {
       method: 'POST',
       body: JSON.stringify({ username: input })
     });
-    showToast('Kata sandi baru: ' + data.newPassword + ' — simpan dengan baik.', 'success');
+    showToast(data.message || 'Permintaan reset dikirim.', 'success');
     switchTab('login');
   } catch (err) {
     markError(field);
@@ -334,7 +359,7 @@ function doLogout() {
     document.querySelectorAll('.input').forEach(i => { i.value = ''; i.classList.remove('error', 'success'); });
     document.getElementById('apkResult').classList.remove('show');
     document.getElementById('pwStrength').removeAttribute('data-level');
-    document.getElementById('pwStrengthLabel').textContent = 'Minimal 4 karakter';
+    document.getElementById('pwStrengthLabel').textContent = 'Minimal 8 karakter';
     const avatar = document.getElementById('profilAvatar');
     avatar.style.backgroundImage = '';
     waFiles = [];
@@ -367,11 +392,6 @@ function toggleSidebarDesktop() {
   const icon = document.querySelector('#collapseBtn svg');
   sidebarCollapsed = !sidebarCollapsed;
 
-  // PENTING: animasi geser dipaksa lewat inline style di sini (bukan cuma
-  // toggle class .collapsed di style.css). Inline style dari JS ini SELALU
-  // menang di atas aturan CSS manapun, jadi dijamin kelihatan begitu
-  // script.js ini ke-deploy -- gak tergantung lagi apakah style.css yang
-  // baru beneran ke-deploy/ke-cache dengan benar di server.
   const w = sb.offsetWidth || 240;
   sb.style.transition = 'transform .35s cubic-bezier(.22,1,.36,1), margin-left .35s cubic-bezier(.22,1,.36,1), opacity .35s ease';
 
@@ -412,6 +432,15 @@ function generateApk() {
   clearFieldStates(urlInput);
   if (!url) { markError(urlInput); showToast('Masukkan URL terlebih dahulu.', 'error'); return; }
 
+  // Validasi URL
+  try {
+    new URL(url);
+  } catch {
+    markError(urlInput);
+    showToast('URL tidak valid.', 'error');
+    return;
+  }
+
   const btn = event.currentTarget;
   const original = btn.innerHTML;
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12"/></svg> Memproses...';
@@ -421,7 +450,7 @@ function generateApk() {
     btn.disabled = false;
     urlInput.classList.add('success');
     const domain = url.replace(/^https?:\/\//, '').split('/')[0];
-    document.getElementById('apkFileName').textContent = domain + '.apk';
+    document.getElementById('apkFileName').textContent = escapeHtml(domain) + '.apk';
     document.getElementById('apkResult').classList.add('show');
     showToast('APK berhasil dibuat.', 'success');
   }, 1500);
@@ -432,6 +461,8 @@ function handleAvatarUpload(input) {
   const file = input.files && input.files[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) { showToast('File harus berupa gambar.', 'error'); return; }
+  // Batasi ukuran file (max 2MB)
+  if (file.size > 2 * 1024 * 1024) { showToast('Ukuran file maksimal 2MB.', 'error'); return; }
   const reader = new FileReader();
   reader.onload = (e) => {
     const avatar = document.getElementById('profilAvatar');
@@ -450,6 +481,8 @@ function handleWaUpload(fileList) {
   if (!files.length) return;
   files.forEach(file => {
     if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) return;
+    // Batasi ukuran file (max 50MB)
+    if (file.size > 50 * 1024 * 1024) { showToast('Ukuran file maksimal 50MB.', 'error'); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
       waFiles.push({ url: e.target.result, type: file.type, name: file.name });
@@ -483,7 +516,7 @@ function renderWaGrid() {
     item.className = 'wa-item';
     const isVideo = f.type.startsWith('video/');
     item.innerHTML = `
-      ${isVideo ? `<video src="${f.url}" muted></video>` : `<img src="${f.url}" alt="${f.name}">`}
+      ${isVideo ? `<video src="${f.url}" muted></video>` : `<img src="${f.url}" alt="${escapeHtml(f.name)}">`}
       <span class="wa-item-badge">${isVideo ? 'Video' : 'Foto'}</span>
       <button class="wa-item-remove" title="Hapus">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -541,13 +574,13 @@ function updatePwStrength(value) {
   const label = document.getElementById('pwStrengthLabel');
   if (!value) {
     box.removeAttribute('data-level');
-    label.textContent = 'Minimal 4 karakter';
+    label.textContent = 'Minimal 8 karakter';
     return;
   }
   let score = 0;
-  if (value.length >= 4) score++;
-  if (value.length >= 8 && /[0-9]/.test(value) && /[a-zA-Z]/.test(value)) score++;
-  if (value.length >= 10 && /[^a-zA-Z0-9]/.test(value)) score++;
+  if (value.length >= 8) score++;
+  if (value.length >= 8 && /[0-9]/.test(value) && /[a-z]/.test(value) && /[A-Z]/.test(value)) score++;
+  if (value.length >= 12 && /[^a-zA-Z0-9]/.test(value)) score++;
   const level = Math.max(1, score);
   box.setAttribute('data-level', level);
   const labels = { 1: 'Lemah', 2: 'Sedang', 3: 'Kuat' };

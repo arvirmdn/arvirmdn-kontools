@@ -7,6 +7,12 @@
   <meta name="description" content="arvirmdn kontools — kumpulan tools praktis: link to APK, status WA HD, dan lainnya.">
   <meta property="og:title" content="arvirmdn kontools v0.1">
   <meta property="og:description" content="Kumpulan tools praktis dalam satu dashboard.">
+
+  <!-- Security Meta Tags -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -48,7 +54,7 @@
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
             </svg>
-            <input type="text" class="input" id="regUser" placeholder="Buat nama pengguna">
+            <input type="text" class="input" id="regUser" placeholder="Buat nama pengguna (3-20 karakter, huruf/angka/_/.-)" autocomplete="username" maxlength="20">
           </div>
         </div>
         <div class="field">
@@ -58,7 +64,7 @@
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            <input type="password" class="input" id="regPass" placeholder="Buat kata sandi" oninput="updatePwStrength(this.value)">
+            <input type="password" class="input" id="regPass" placeholder="Min 8 karakter, huruf besar, kecil, angka" oninput="updatePwStrength(this.value)" autocomplete="new-password">
           </div>
           <div class="pw-strength" id="pwStrength">
             <div class="pw-strength-bars">
@@ -66,7 +72,7 @@
               <div class="pw-strength-bar"></div>
               <div class="pw-strength-bar"></div>
             </div>
-            <div class="pw-strength-label" id="pwStrengthLabel">Minimal 4 karakter</div>
+            <div class="pw-strength-label" id="pwStrengthLabel">Minimal 8 karakter</div>
           </div>
         </div>
         <div class="field">
@@ -76,7 +82,7 @@
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            <input type="password" class="input" id="regConfirm" placeholder="Ulangi kata sandi">
+            <input type="password" class="input" id="regConfirm" placeholder="Ulangi kata sandi" autocomplete="new-password">
           </div>
         </div>
         <button class="submit" onclick="doAuth('daftar')">
@@ -99,7 +105,7 @@
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
             </svg>
-            <input type="text" class="input" id="logUser" placeholder="Masukkan nama pengguna">
+            <input type="text" class="input" id="logUser" placeholder="Masukkan nama pengguna" autocomplete="username">
           </div>
         </div>
         <div class="field">
@@ -109,7 +115,7 @@
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            <input type="password" class="input" id="logPass" placeholder="Masukkan kata sandi">
+            <input type="password" class="input" id="logPass" placeholder="Masukkan kata sandi" autocomplete="current-password">
           </div>
         </div>
         <button class="forgot-link" onclick="switchTab('forgot')">Lupa sandi?</button>
@@ -126,20 +132,20 @@
       <!-- FORGOT -->
       <div class="form" id="formForgot">
         <div class="field">
-          <label>Email atau nama pengguna</label>
+          <label>Nama pengguna</label>
           <div class="input-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
               <polyline points="22,6 12,13 2,6"/>
             </svg>
-            <input type="text" class="input" id="forgotInput" placeholder="Masukkan email atau nama pengguna">
+            <input type="text" class="input" id="forgotInput" placeholder="Masukkan nama pengguna">
           </div>
         </div>
         <button class="submit" onclick="doForgot()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
-          Kirim Link Reset
+          Kirim Permintaan Reset
         </button>
         <button class="back-link" onclick="switchTab('login')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -404,7 +410,7 @@
                 <line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
               <div class="wa-dropzone-title">Tarik &amp; taruh file di sini</div>
-              <div class="wa-dropzone-sub">atau klik untuk pilih foto / video &middot; JPG, PNG, MP4</div>
+              <div class="wa-dropzone-sub">atau klik untuk pilih foto / video &middot; JPG, PNG, MP4 (Max 50MB)</div>
             </div>
 
             <div class="wa-section-head">

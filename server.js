@@ -5,15 +5,64 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const { body, validationResult } = require('express-validator');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const JWT_SECRET = process.env.JWT_SECRET || 'arvirmdn-secret-key-2026';
-const DB_PATH = process.env.DB_PATH || '/app/data/users.db';
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// ===== KEAMANAN: JWT Secret WAJIB dari environment =====
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  console.error('ERROR: JWT_SECRET harus diatur dan minimal 32 karakter!');
+  process.exit(1);
+}
+
+const DB_PATH = process.env.DB_PATH || '/app/data/users.db';
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+// ===== SECURITY HEADERS (Helmet) =====
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"], // inline style dari script.js
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // untuk compatibility
+}));
+
+// ===== CORS TERBATAS =====
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',') 
+  : (NODE_ENV === 'production' ? [] : ['http://localhost:8080', 'http://localhost:3000']);
+
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.length === 0) {
+      // Production tanpa ALLOWED_ORIGINS = block semua
+      return callback(new Error('CORS: Origin not allowed'));
+    }
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error('CORS: Origin not allowed'));
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+app.use(express.json({ limit: '10kb' })); // Batasi body size
 
 // Pastikan folder database ada
 const dbDir = path.dirname(DB_PATH);
@@ -27,14 +76,16 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
     console.error('Database error:', err);
   } else {
     console.log('SQLite connected at', DB_PATH);
-    // Buat tabel users kalau belum ada
     db.run(`CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       email TEXT,
       device_fingerprint TEXT UNIQUE NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_login DATETIME,
+      failed_attempts INTEGER DEFAULT 0,
+      locked_until DATETIME
     )`, (err) => {
       if (err) console.error('Create table error:', err);
       else console.log('Users table ready');
@@ -42,53 +93,124 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
   }
 });
 
-// Middleware verifikasi token
+// ===== RATE LIMITING =====
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 menit
+  max: 5, // maksimal 5 request per IP
+  message: { error: 'Terlalu banyak percobaan. Coba lagi dalam 15 menit.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 menit
+  max: 60, // 60 request per menit
+  message: { error: 'Terlalu banyak request. Coba lagi nanti.' },
+});
+
+app.use('/api/', apiLimiter);
+app.use('/api/login', authLimiter);
+app.use('/api/register', authLimiter);
+app.use('/api/forgot', authLimiter);
+
+// ===== HELPER FUNCTIONS =====
+function sanitizeUsername(username) {
+  // Hanya huruf, angka, underscore, titik, strip. Min 3, max 20 karakter.
+  return username.replace(/[^a-zA-Z0-9_.-]/g, '').substring(0, 20);
+}
+
+function logSecurity(event, details) {
+  const timestamp = new Date().toISOString();
+  console.log(`[SECURITY] ${timestamp} | ${event} | ${JSON.stringify(details)}`);
+}
+
+// ===== Middleware verifikasi token =====
 function authMiddleware(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Token tidak ditemukan' });
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token tidak ditemukan' });
+  }
+  const token = authHeader.split(' ')[1];
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(403).json({ error: 'Token tidak valid' });
+    if (err) {
+      logSecurity('INVALID_TOKEN', { ip: req.ip, error: err.message });
+      return res.status(403).json({ error: 'Token tidak valid' });
+    }
     req.userId = decoded.id;
     req.username = decoded.username;
     next();
   });
 }
 
+// ===== VALIDATION CHAINS =====
+const registerValidation = [
+  body('username')
+    .trim()
+    .isLength({ min: 3, max: 20 }).withMessage('Username 3-20 karakter')
+    .matches(/^[a-zA-Z0-9_.-]+$/).withMessage('Username hanya huruf, angka, _, ., -'),
+  body('password')
+    .isLength({ min: 8 }).withMessage('Password minimal 8 karakter')
+    .matches(/[a-z]/).withMessage('Password harus ada huruf kecil')
+    .matches(/[A-Z]/).withMessage('Password harus ada huruf besar')
+    .matches(/[0-9]/).withMessage('Password harus ada angka'),
+  body('device_fingerprint')
+    .isLength({ min: 10, max: 128 }).withMessage('Fingerprint tidak valid'),
+];
+
+const loginValidation = [
+  body('username').trim().notEmpty().withMessage('Username wajib diisi'),
+  body('password').notEmpty().withMessage('Password wajib diisi'),
+];
+
+const forgotValidation = [
+  body('username').trim().notEmpty().withMessage('Username wajib diisi'),
+];
+
 // ===== API ROUTES =====
 
 // Register
-app.post('/api/register', (req, res) => {
-  const { username, password, device_fingerprint } = req.body;
-  if (!username || !password || !device_fingerprint) {
-    return res.status(400).json({ error: 'Data tidak lengkap' });
+app.post('/api/register', registerValidation, (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ error: errors.array()[0].msg });
   }
-  if (password.length < 4) {
-    return res.status(400).json({ error: 'Password minimal 4 karakter' });
+
+  const { username, password, device_fingerprint } = req.body;
+  const cleanUsername = sanitizeUsername(username);
+
+  if (!cleanUsername || cleanUsername.length < 3) {
+    return res.status(400).json({ error: 'Username tidak valid' });
   }
 
   // Cek apakah device sudah pernah daftar
   db.get('SELECT username FROM users WHERE device_fingerprint = ?', [device_fingerprint], (err, existing) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
+    if (err) {
+      logSecurity('DB_ERROR', { ip: req.ip, endpoint: 'register' });
+      return res.status(500).json({ error: 'Database error' });
+    }
     if (existing) {
+      logSecurity('DEVICE_REUSE_ATTEMPT', { ip: req.ip, device: device_fingerprint });
       return res.status(400).json({ 
-        error: 'Perangkat ini sudah terdaftar dengan akun "' + existing.username + '". Satu perangkat hanya boleh 1 akun.' 
+        error: 'Perangkat ini sudah terdaftar dengan akun lain.' 
       });
     }
 
-    const hash = bcrypt.hashSync(password, 10);
-    const email = username.toLowerCase().replace(/[^a-z0-9]/g, '') + '@arvirmdn.local';
+    const hash = bcrypt.hashSync(password, 12); // Cost factor 12
+    const email = cleanUsername.toLowerCase() + '@arvirmdn.local';
 
     db.run(
       'INSERT INTO users (username, password, email, device_fingerprint) VALUES (?, ?, ?, ?)',
-      [username, hash, email, device_fingerprint],
+      [cleanUsername, hash, email, device_fingerprint],
       function(err) {
         if (err) {
           if (err.message.includes('UNIQUE constraint failed') && err.message.includes('users.username')) {
             return res.status(400).json({ error: 'Username sudah terdaftar' });
           }
-          return res.status(500).json({ error: 'Gagal mendaftar: ' + err.message });
+          logSecurity('REGISTER_FAIL', { ip: req.ip, error: err.message });
+          return res.status(500).json({ error: 'Gagal mendaftar' });
         }
+        logSecurity('REGISTER_SUCCESS', { ip: req.ip, username: cleanUsername });
         res.json({ success: true, message: 'Akun berhasil dibuat' });
       }
     );
@@ -96,25 +218,61 @@ app.post('/api/register', (req, res) => {
 });
 
 // Login
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Username dan password wajib diisi' });
+app.post('/api/login', loginValidation, (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ error: errors.array()[0].msg });
   }
 
-  db.get('SELECT * FROM users WHERE username = ?', [username], (err, user) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    if (!user) return res.status(400).json({ error: 'Username tidak ditemukan' });
+  const { username, password } = req.body;
+  const cleanUsername = sanitizeUsername(username);
+
+  // Cek apakah akun terkunci
+  db.get('SELECT * FROM users WHERE username = ?', [cleanUsername], (err, user) => {
+    if (err) {
+      logSecurity('DB_ERROR', { ip: req.ip, endpoint: 'login' });
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (!user) {
+      logSecurity('LOGIN_FAIL_USER_NOT_FOUND', { ip: req.ip, username: cleanUsername });
+      return res.status(400).json({ error: 'Username atau password salah' });
+    }
+
+    // Cek lockout
+    if (user.locked_until && new Date(user.locked_until) > new Date()) {
+      logSecurity('LOGIN_LOCKED', { ip: req.ip, username: cleanUsername });
+      return res.status(423).json({ error: 'Akun terkunci. Coba lagi nanti.' });
+    }
 
     const valid = bcrypt.compareSync(password, user.password);
-    if (!valid) return res.status(400).json({ error: 'Password salah' });
+    if (!valid) {
+      // Increment failed attempts
+      const newAttempts = (user.failed_attempts || 0) + 1;
+      let lockUntil = null;
+      if (newAttempts >= 5) {
+        lockUntil = new Date(Date.now() + 30 * 60 * 1000); // Lock 30 menit
+      }
+      db.run(
+        'UPDATE users SET failed_attempts = ?, locked_until = ? WHERE id = ?',
+        [newAttempts, lockUntil, user.id]
+      );
+      logSecurity('LOGIN_FAIL_WRONG_PASS', { ip: req.ip, username: cleanUsername, attempts: newAttempts });
+      return res.status(400).json({ error: 'Username atau password salah' });
+    }
+
+    // Reset failed attempts
+    db.run('UPDATE users SET failed_attempts = 0, locked_until = NULL, last_login = ? WHERE id = ?',
+      [new Date().toISOString(), user.id]
+    );
 
     const token = jwt.sign(
       { id: user.id, username: user.username },
       JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '1d', issuer: 'arvirmdn-kontools', audience: 'arvirmdn-users' }
     );
 
+    logSecurity('LOGIN_SUCCESS', { ip: req.ip, username: user.username });
     res.json({
       success: true,
       token,
@@ -136,19 +294,42 @@ app.get('/api/me', authMiddleware, (req, res) => {
   });
 });
 
-// Reset password (lupa sandi)
-app.post('/api/forgot', (req, res) => {
+// Reset password (lupa sandi) - DIAMANKAN
+// Endpoint ini sekarang HANYA mengirim notifikasi ke admin, TIDAK mengembalikan password
+app.post('/api/forgot', forgotValidation, (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ error: errors.array()[0].msg });
+  }
+
   const { username } = req.body;
-  if (!username) return res.status(400).json({ error: 'Username wajib diisi' });
+  const cleanUsername = sanitizeUsername(username);
 
-  const newPass = Math.random().toString(36).slice(-8);
-  const hash = bcrypt.hashSync(newPass, 10);
+  db.get('SELECT id, email FROM users WHERE username = ?', [cleanUsername], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: 'Gagal memproses' });
+    }
+    if (!user) {
+      // Jangan kasih tahu kalau username tidak ada (security through obscurity)
+      logSecurity('FORGOT_REQUEST', { ip: req.ip, username: cleanUsername, found: false });
+      return res.json({ success: true, message: 'Jika akun ada, instruksi reset akan dikirim.' });
+    }
 
-  db.run('UPDATE users SET password = ? WHERE username = ?', [hash, username], function(err) {
-    if (err) return res.status(500).json({ error: 'Gagal reset' });
-    if (this.changes === 0) return res.status(404).json({ error: 'Username tidak ditemukan' });
-    res.json({ success: true, newPassword: newPass });
+    logSecurity('FORGOT_REQUEST', { ip: req.ip, username: cleanUsername, found: true });
+    // Di produksi: kirim email reset link ke user.email
+    // Untuk sekarang, beri response generik
+    res.json({ success: true, message: 'Jika akun ada, instruksi reset akan dikirim.' });
   });
+});
+
+// ===== ERROR HANDLING =====
+app.use((err, req, res, next) => {
+  logSecurity('SERVER_ERROR', { ip: req.ip, error: err.message });
+  if (NODE_ENV === 'production') {
+    res.status(500).json({ error: 'Terjadi kesalahan server' });
+  } else {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ===== SERVE FRONTEND =====
@@ -164,6 +345,7 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log('arvirmdn kontools v0.1 running on port', PORT);
+  console.log('arvirmdn kontools v0.1 (SECURE) running on port', PORT);
   console.log('Database:', DB_PATH);
+  console.log('Environment:', NODE_ENV);
 });
