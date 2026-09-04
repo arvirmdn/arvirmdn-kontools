@@ -264,3 +264,33 @@ button{cursor:pointer}
 .wa-member-status.success{color:#b8ff5a;background:rgba(184,255,90,.06);border-color:rgba(184,255,90,.18)}
 .wa-member-status.error{color:#ff8f8f;background:rgba(255,75,75,.06);border-color:rgba(255,75,75,.18)}
 .wa-member-status[hidden]{display:none}
+
+/* Mobile dashboard scroll fix */
+@media (max-width:520px){
+  html:has(body.dashboard-page),
+  body.dashboard-page{
+    height:auto;
+    min-height:100%;
+    overflow-x:hidden;
+    overflow-y:auto;
+  }
+  body.dashboard-page .dashboard-page{
+    height:auto;
+  }
+  .dashboard-page .main-area{
+    height:auto;
+    min-height:100dvh;
+    overflow:visible;
+  }
+  .dashboard-page .content{
+    height:auto;
+    min-height:calc(100dvh - 58px);
+    overflow:visible;
+    padding-bottom:28px;
+  }
+  .dashboard-page .page.active{
+    height:auto;
+    min-height:0;
+    overflow:visible;
+  }
+}
