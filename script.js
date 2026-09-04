@@ -182,8 +182,7 @@ function validateUsername(username) {
   return null;
 }
 
-async function doAuth(action) {
-  const btn = event.currentTarget;
+async function doAuth(action, btn) {
 
   if (action === 'daftar') {
     const userInput = document.getElementById('regUser');
@@ -426,7 +425,7 @@ function goPage(pageId, el) {
 }
 
 // ===== LINK TO APK =====
-function generateApk() {
+function generateApk(btn) {
   const urlInput = document.getElementById('apkUrl');
   const url = urlInput.value.trim();
   clearFieldStates(urlInput);
@@ -441,7 +440,6 @@ function generateApk() {
     return;
   }
 
-  const btn = event.currentTarget;
   const original = btn.innerHTML;
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12"/></svg> Memproses...';
   btn.disabled = true;
