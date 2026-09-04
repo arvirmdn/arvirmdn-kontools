@@ -44,6 +44,10 @@ function showPage(page) {
   navItems.forEach(item => item.classList.toggle("active", item.dataset.page === page));
   Object.entries(pages).forEach(([key, el]) => el.classList.toggle("active", key === page));
   pageName.textContent = pageLabels[page];
+  // Jangan biarkan workspace tool tetap terbuka saat pindah menu.
+  if (page !== "tools" && waHdWorkspace && !waHdWorkspace.hidden) {
+    resetWaHdTool();
+  }
   if (window.innerWidth < 900) closeNav();
 }
 
@@ -156,7 +160,7 @@ fetch("/api/me", { credentials: "same-origin" })
   })
   .catch(() => window.location.assign("/"));
 
-// Upload Status WA HD — media tetap asli; belum dikirim ke server sampai bot diintegrasikan.
+// Upload Status WA HD — media tetap asli; bot akan diintegrasikan setelah ini.
 const waHdInput = document.getElementById("waHdInput");
 const waHdWorkspace = document.getElementById("waHdWorkspace");
 const openWaHdBtn = document.getElementById("openWaHdBtn");
@@ -170,26 +174,39 @@ const waHdResult = document.getElementById("waHdResult");
 const waSendTitle = document.getElementById("waSendTitle");
 const waSendDetail = document.getElementById("waSendDetail");
 const waSendBtn = document.getElementById("waSendBtn");
+const waMemberStatus = document.getElementById("waMemberStatus");
 let waSelectedFile = null;
 let waSelectedObjectUrl = null;
 
-if (openWaHdBtn) {
-  openWaHdBtn.addEventListener("click", () => {
-    waHdWorkspace.hidden = false;
-    waHdWorkspace.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
+function openWaHdTool() {
+  if (!waHdWorkspace) return;
+  waHdWorkspace.hidden = false;
+  waHdWorkspace.classList.remove("tool-workspace-opening");
+  void waHdWorkspace.offsetWidth;
+  waHdWorkspace.classList.add("tool-workspace-opening");
+  waHdWorkspace.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-if (closeWaHdBtn) {
-  closeWaHdBtn.addEventListener("click", resetWaHdTool);
+function closeWaHdTool() {
+  resetWaHdTool();
 }
+
+if (openWaHdBtn) openWaHdBtn.addEventListener("click", openWaHdTool);
+if (closeWaHdBtn) closeWaHdBtn.addEventListener("click", closeWaHdTool);
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && waHdWorkspace && !waHdWorkspace.hidden) closeWaHdTool();
+});
 
 if (waHdInput) {
   waHdInput.addEventListener("change", () => processWaHdFile(waHdInput.files && waHdInput.files[0]));
 }
 
 if (waTargetInput) {
-  waTargetInput.addEventListener("input", updateWaHdState);
+  waTargetInput.addEventListener("input", () => {
+    updateWaHdState();
+    clearMemberStatus();
+  });
 }
 
 if (waDropzone) {
@@ -207,11 +224,7 @@ if (waDropzone) {
   });
 }
 
-if (waSendBtn) {
-  waSendBtn.addEventListener("click", () => {
-    showToast("Bot WhatsApp belum terhubung. Tool sudah siap untuk integrasi bot.");
-  });
-}
+if (waSendBtn) waSendBtn.addEventListener("click", handleWaSend);
 
 function normalizeWaNumber(value) {
   const digits = String(value || "").replace(/\D/g, "");
@@ -256,6 +269,7 @@ function processWaHdFile(file) {
   if (waSelectedObjectUrl) URL.revokeObjectURL(waSelectedObjectUrl);
   waSelectedFile = file;
   waSelectedObjectUrl = URL.createObjectURL(file);
+  clearMemberStatus();
 
   waMediaPreview.hidden = false;
   waHdResult.hidden = false;
@@ -273,8 +287,7 @@ function processWaHdFile(file) {
         <div><span>Ukuran</span><strong>${formatBytes(file.size)}</strong></div>
         <div><span>Resolusi</span><strong>${video.videoWidth || "-"} × ${video.videoHeight || "-"}</strong></div>
         <div><span>Durasi</span><strong>${formatDuration(video.duration)}</strong></div>
-        <div><span>Format</span><strong>${escapeHtml(file.type)}</strong></div>
-      `;
+        <div><span>Format</span><strong>${escapeHtml(file.type)}</strong></div>`;
     });
     waPreviewMedia.appendChild(video);
     waFileInfo.innerHTML = `<div><span>Nama</span><strong>${escapeHtml(file.name)}</strong></div><div><span>Ukuran</span><strong>${formatBytes(file.size)}</strong></div>`;
@@ -287,8 +300,7 @@ function processWaHdFile(file) {
         <div><span>Nama</span><strong>${escapeHtml(file.name)}</strong></div>
         <div><span>Ukuran</span><strong>${formatBytes(file.size)}</strong></div>
         <div><span>Resolusi</span><strong>${img.naturalWidth || "-"} × ${img.naturalHeight || "-"}</strong></div>
-        <div><span>Format</span><strong>${escapeHtml(file.type)}</strong></div>
-      `;
+        <div><span>Format</span><strong>${escapeHtml(file.type)}</strong></div>`;
     });
     waPreviewMedia.appendChild(img);
     waFileInfo.innerHTML = `<div><span>Nama</span><strong>${escapeHtml(file.name)}</strong></div><div><span>Ukuran</span><strong>${formatBytes(file.size)}</strong></div>`;
@@ -321,6 +333,83 @@ function updateWaHdState() {
   waSendDetail.textContent = `Target tag: @${number} • file asli dipertahankan`;
 }
 
+function setMemberStatus(type, text) {
+  if (!waMemberStatus) return;
+  waMemberStatus.hidden = false;
+  waMemberStatus.className = `wa-member-status ${type}`;
+  waMemberStatus.textContent = text;
+}
+
+function clearMemberStatus() {
+  if (!waMemberStatus) return;
+  waMemberStatus.hidden = true;
+  waMemberStatus.textContent = "";
+  waMemberStatus.className = "wa-member-status";
+}
+
+async function handleWaSend() {
+  const number = normalizeWaNumber(waTargetInput ? waTargetInput.value : "");
+  if (!/^628\d{7,13}$/.test(number)) {
+    showToast("Nomor WhatsApp belum valid.");
+    return;
+  }
+  if (!waSelectedFile) {
+    showToast("Pilih foto atau video terlebih dahulu.");
+    return;
+  }
+
+  waSendBtn.disabled = true;
+  setMemberStatus("checking", "Memeriksa nomor di group…");
+  waSendTitle.textContent = "Memeriksa nomor…";
+  waSendDetail.textContent = `@${number}`;
+
+  try {
+    const response = await fetch("/api/wa/check-member", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ phone: number })
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (data.code === "NOT_IN_GROUP") {
+      setMemberStatus("error", "✕ Nomor tidak ada di group");
+      waSendTitle.textContent = "Gagal dikirim";
+      waSendDetail.textContent = "Nomor tidak ada di group.";
+      showToast("Nomor tidak ada di group.");
+      waSendBtn.disabled = false;
+      return;
+    }
+
+    if (!response.ok || data.code === "BOT_NOT_CONNECTED") {
+      setMemberStatus("error", "✕ Bot WhatsApp belum terhubung");
+      waSendTitle.textContent = "Bot belum terhubung";
+      waSendDetail.textContent = "Nanti setelah bot dibuat, pengecekan group akan dilakukan otomatis.";
+      showToast("Bot WhatsApp belum terhubung.");
+      waSendBtn.disabled = false;
+      return;
+    }
+
+    if (data.ok === true) {
+      setMemberStatus("success", "✓ Nomor ada di group");
+      waSendTitle.textContent = "Nomor ditemukan di group";
+      waSendDetail.textContent = `Siap mengirim media dan tag @${number}.`;
+      showToast("Nomor ada di group.");
+      // Pengiriman file akan disambungkan ke bot pada tahap berikutnya.
+      waSendBtn.disabled = false;
+      return;
+    }
+
+    throw new Error(data.message || "Pengecekan nomor gagal.");
+  } catch (error) {
+    setMemberStatus("error", "✕ Gagal memeriksa nomor");
+    waSendTitle.textContent = "Gagal memeriksa nomor";
+    waSendDetail.textContent = error.message || "Coba lagi.";
+    showToast("Gagal memeriksa nomor.");
+    waSendBtn.disabled = false;
+  }
+}
+
 function resetWaHdTool() {
   if (waSelectedObjectUrl) URL.revokeObjectURL(waSelectedObjectUrl);
   waSelectedObjectUrl = null;
@@ -333,6 +422,7 @@ function resetWaHdTool() {
   if (waPreviewMedia) waPreviewMedia.innerHTML = "";
   if (waFileInfo) waFileInfo.innerHTML = "";
   if (waSendBtn) waSendBtn.disabled = true;
+  clearMemberStatus();
 }
 
 function escapeHtml(value) {
@@ -340,4 +430,3 @@ function escapeHtml(value) {
     "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
   })[char]);
 }
-
