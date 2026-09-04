@@ -1,1 +1,73 @@
-p
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#090b12">
+  <title>ARVIR — Premium Access</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="auth-page">
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <main class="auth-shell">
+    <section class="brand-panel">
+      <div class="brand-mark">A</div>
+      <span class="eyebrow">ARVIR DIGITAL</span>
+      <h1>Simple.<br><span>Premium.</span><br>Powerful.</h1>
+      <p>Platform pribadi dengan tampilan modern yang siap kamu kembangkan sesuai kebutuhan.</p>
+      <div class="mini-stats">
+        <div><strong>01</strong><span>Secure Access</span></div>
+        <div><strong>02</strong><span>Modern UI</span></div>
+        <div><strong>03</strong><span>Ready to Scale</span></div>
+      </div>
+    </section>
+
+    <section class="auth-card">
+      <div class="auth-head">
+        <div>
+          <span class="eyebrow">WELCOME BACK</span>
+          <h2 id="authTitle">Masuk ke akun</h2>
+          <p id="authSubtitle">Kelola semuanya dari satu tempat.</p>
+        </div>
+        <div class="status-dot" title="System ready"></div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-mode="login" type="button">Masuk</button>
+        <button class="tab" data-mode="register" type="button">Daftar</button>
+      </div>
+
+      <form id="authForm" novalidate>
+        <div class="field hidden" id="nameField">
+          <label for="name">Nama</label>
+          <input id="name" name="name" type="text" autocomplete="name" placeholder="Nama kamu">
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="nama@email.com" required>
+        </div>
+
+        <div class="field">
+          <div class="label-row">
+            <label for="password">Password</label>
+            <button id="togglePassword" class="text-btn" type="button">Tampilkan</button>
+          </div>
+          <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Minimal 6 karakter" required>
+        </div>
+
+        <div id="message" class="form-message" role="alert"></div>
+        <button id="submitBtn" class="primary-btn" type="submit">
+          <span id="submitText">Masuk</span><span class="arrow">↗</span>
+        </button>
+      </form>
+
+      <p class="terms">Dengan melanjutkan, kamu menyetujui penggunaan platform ini.</p>
+    </section>
+  </main>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

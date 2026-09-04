@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#090b12">
+  <title>ARVIR — Dashboard</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="dashboard-page">
+  <div class="mobile-backdrop" id="backdrop"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="side-top">
+      <a class="side-brand" href="/dashboard"><span>A</span><b>ARVIR</b></a>
+      <button class="icon-btn side-close" id="closeSidebar" type="button" aria-label="Tutup sidebar">×</button>
+    </div>
+
+    <div class="profile-mini">
+      <div class="avatar" id="avatar">A</div>
+      <div>
+        <strong id="userName">User</strong>
+        <small id="userEmail">email</small>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" type="button" data-page="overview"><span>⌂</span>Overview</button>
+      <button class="nav-item" type="button" data-page="coming"><span>✦</span>Menu Baru</button>
+      <button class="nav-item" type="button" data-page="coming"><span>◈</span>Tools</button>
+      <button class="nav-item" type="button" data-page="coming"><span>⚙</span>Pengaturan</button>
+    </nav>
+
+    <div class="side-bottom">
+      <div class="side-note"><span>●</span> System online</div>
+      <button class="logout-btn" id="logoutBtn" type="button"><span>↪</span> Keluar</button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <button class="icon-btn menu-toggle" id="openSidebar" type="button" aria-label="Buka sidebar">☰</button>
+      <div class="crumb"><span>Dashboard</span><i>/</i><b id="pageName">Overview</b></div>
+      <div class="top-actions">
+        <button class="icon-btn" id="notifyBtn" type="button" aria-label="Notifikasi">♢</button>
+        <div class="top-avatar" id="topAvatar">A</div>
+      </div>
+    </header>
+
+    <main class="content">
+      <section id="overviewPage" class="page active">
+        <div class="hero-card">
+          <div>
+            <span class="eyebrow">YOUR SPACE</span>
+            <h1>Halo, <span id="heroName">User</span>.</h1>
+            <p>Selamat datang di dashboard baru kamu. Bagian dalamnya sengaja dibuat kosong dulu supaya nanti kita isi sesuai kebutuhanmu.</p>
+          </div>
+          <div class="hero-orb">A</div>
+        </div>
+
+        <div class="section-head">
+          <div><span class="eyebrow">QUICK ACCESS</span><h2>Siap dikembangkan</h2></div>
+        </div>
+
+        <div class="empty-grid">
+          <article class="empty-card"><span>01</span><h3>Menu pertama</h3><p>Tempat untuk fitur yang nanti kamu tentukan.</p></article>
+          <article class="empty-card"><span>02</span><h3>Menu kedua</h3><p>Bisa diubah menjadi tools, aplikasi, bot, atau lainnya.</p></article>
+          <article class="empty-card"><span>03</span><h3>Menu ketiga</h3><p>Struktur sudah siap untuk dikembangkan.</p></article>
+        </div>
+      </section>
+
+      <section id="comingPage" class="page">
+        <div class="placeholder-card">
+          <span class="eyebrow">COMING NEXT</span>
+          <h1>Bagian ini belum diisi.</h1>
+          <p>Nanti kamu tinggal bilang mau memasukkan fitur apa di sini.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="/dashboard.js" defer></script>
+</body>
+</html>
