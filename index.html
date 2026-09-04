@@ -220,10 +220,11 @@
         <div class="page active" id="page-profil">
           <div class="tool-card">
             <div class="profil-header">
-              <div class="profil-avatar">A</div>
+              <div class="profil-avatar" id="profilAvatar">A</div>
               <div class="profil-info">
-                <h2>arvirmdn</h2>
-                <p>arvirmdn@email.com</p>
+                <h2 id="profilName">Pengguna</h2>
+                <p id="profilEmail">-</p>
+                <p style="font-size:12px;color:var(--text-tertiary);margin-top:2px;" id="profilUid">-</p>
                 <div class="badge">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -235,15 +236,15 @@
             <div class="profil-grid">
               <div class="profil-field">
                 <div class="label">Nama pengguna</div>
-                <div class="value">arvirmdn</div>
+                <div class="value" id="profilUser">-</div>
               </div>
               <div class="profil-field">
-                <div class="label">Email</div>
-                <div class="value">arvirmdn@email.com</div>
+                <div class="label">ID Pengguna</div>
+                <div class="value" id="profilId">-</div>
               </div>
               <div class="profil-field">
                 <div class="label">Bergabung</div>
-                <div class="value">4 September 2026</div>
+                <div class="value" id="profilJoin">-</div>
               </div>
               <div class="profil-field">
                 <div class="label">Status</div>
@@ -359,5 +360,6 @@
   </div>
 
   <script src="script.js"></script>
+  <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
 </body>
 </html>

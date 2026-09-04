@@ -1,4 +1,8 @@
-// Particle generator
+// ===== KONFIGURASI BACKEND =====
+// Railway akan otomatis detect domain sendiri
+const API_URL = '';  // Kosong = same origin (frontend & backend di domain yang sama)
+
+// ===== PARTICLES =====
 (function() {
   const container = document.getElementById('particles');
   if (!container) return;
@@ -15,7 +19,7 @@
   }
 })();
 
-// Tab slider positioning
+// ===== TAB SLIDER =====
 function updateSlider() {
   const activeTab = document.querySelector('.tab.active');
   const slider = document.getElementById('tabSlider');
@@ -46,7 +50,7 @@ function switchTab(mode) {
     document.getElementById('formRegister').classList.remove('active');
     document.getElementById('formForgot').classList.add('active');
     document.getElementById('authTitle').textContent = 'Lupa Kata Sandi';
-    document.getElementById('authSubtitle').textContent = 'Masukkan email atau nama pengguna untuk reset';
+    document.getElementById('authSubtitle').textContent = 'Masukkan nama pengguna untuk reset kata sandi';
     footer.style.display = 'none';
   } else {
     tabLogin.classList.toggle('active', isLogin);
@@ -63,10 +67,101 @@ function switchTab(mode) {
   }
 }
 
-window.addEventListener('load', updateSlider);
+window.addEventListener('load', function() {
+  updateSlider();
+  checkSession();
+});
 window.addEventListener('resize', updateSlider);
 
-function doAuth(action) {
+// ===== AUTH FUNCTIONS =====
+function setLoading(btn, loading) {
+  if (loading) {
+    btn.dataset.original = btn.innerHTML;
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12"/></svg> Memproses...';
+    btn.disabled = true;
+  } else {
+    btn.innerHTML = btn.dataset.original;
+    btn.disabled = false;
+  }
+}
+
+async function api(endpoint, options = {}) {
+  const url = (API_URL || window.location.origin) + endpoint;
+  const res = await fetch(url, {
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+    ...options
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+async function doAuth(action) {
+  const btn = event.currentTarget;
+
+  if (action === 'daftar') {
+    const user = document.getElementById('regUser').value.trim();
+    const pass = document.getElementById('regPass').value;
+    const confirm = document.getElementById('regConfirm').value;
+
+    if (!user || !pass) { alert('Nama pengguna dan kata sandi wajib diisi.'); return; }
+    if (pass !== confirm) { alert('Konfirmasi kata sandi tidak cocok.'); return; }
+    if (pass.length < 4) { alert('Kata sandi minimal 4 karakter.'); return; }
+
+    setLoading(btn, true);
+    try {
+      await api('/api/register', {
+        method: 'POST',
+        body: JSON.stringify({ username: user, password: pass })
+      });
+      alert('Akun berhasil dibuat! Silakan masuk.');
+      switchTab('login');
+      document.getElementById('logUser').value = user;
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setLoading(btn, false);
+    }
+    return;
+  }
+
+  if (action === 'masuk') {
+    const user = document.getElementById('logUser').value.trim();
+    const pass = document.getElementById('logPass').value;
+
+    if (!user || !pass) { alert('Nama pengguna dan kata sandi wajib diisi.'); return; }
+
+    setLoading(btn, true);
+    try {
+      const data = await api('/api/login', {
+        method: 'POST',
+        body: JSON.stringify({ username: user, password: pass })
+      });
+      localStorage.setItem('arvirmdn_token', data.token);
+      enterDashboard(data.user);
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setLoading(btn, false);
+    }
+  }
+}
+
+function enterDashboard(user) {
+  const username = user.username || 'Pengguna';
+  const joinDate = user.created_at
+    ? new Date(user.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '-';
+
+  document.getElementById('userName').textContent = username;
+  document.getElementById('profilName').textContent = username;
+  document.getElementById('profilEmail').textContent = user.email || '-';
+  document.getElementById('profilUid').textContent = 'ID: ' + (user.id || '-');
+  document.getElementById('profilUser').textContent = username;
+  document.getElementById('profilId').textContent = user.id ? ('ID-' + String(user.id).padStart(6, '0')) : '-';
+  document.getElementById('profilJoin').textContent = joinDate;
+  document.getElementById('profilAvatar').textContent = username.charAt(0).toUpperCase();
+
   const authPage = document.getElementById('authPage');
   authPage.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
   authPage.style.opacity = '0';
@@ -77,16 +172,37 @@ function doAuth(action) {
   }, 350);
 }
 
-function doForgot() {
-  const input = document.getElementById('forgotInput').value.trim();
-  if (!input) {
-    alert('Silakan masukkan email atau nama pengguna.');
-    return;
+async function checkSession() {
+  const token = localStorage.getItem('arvirmdn_token');
+  if (!token) return;
+  try {
+    const data = await api('/api/me', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (data.user) enterDashboard(data.user);
+  } catch {
+    localStorage.removeItem('arvirmdn_token');
   }
-  alert('Link reset kata sandi telah dikirim ke ' + input + ' (simulasi).');
+}
+
+async function doForgot() {
+  const input = document.getElementById('forgotInput').value.trim();
+  if (!input) { alert('Silakan masukkan nama pengguna.'); return; }
+
+  try {
+    const data = await api('/api/forgot', {
+      method: 'POST',
+      body: JSON.stringify({ username: input })
+    });
+    alert('Kata sandi baru: ' + data.newPassword + '\n(Simpan dengan baik!)');
+    switchTab('login');
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
 }
 
 function doLogout() {
+  localStorage.removeItem('arvirmdn_token');
   const dashPage = document.getElementById('dashPage');
   dashPage.style.transition = 'opacity 0.3s ease';
   dashPage.style.opacity = '0';
@@ -107,14 +223,13 @@ function doLogout() {
     document.querySelectorAll('.input').forEach(i => (i.value = ''));
     switchTab('login');
     goPage('profil', document.querySelector('.nav-item'));
-    // Reset sidebar
     const sb = document.getElementById('sidebar');
     sb.classList.remove('collapsed');
     document.getElementById('collapseText').textContent = 'Sembunyikan Menu';
   }, 300);
 }
 
-// Sidebar & page routing
+// ===== SIDEBAR & PAGE ROUTING =====
 function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   const ov = document.getElementById('sidebarOverlay');
@@ -149,17 +264,13 @@ function goPage(pageId, el) {
   if (window.innerWidth <= 768) toggleSidebar();
 }
 
-// Link to APK simulation
+// ===== LINK TO APK =====
 function generateApk() {
   const url = document.getElementById('apkUrl').value.trim();
-  if (!url) {
-    alert('Masukkan URL terlebih dahulu.');
-    return;
-  }
+  if (!url) { alert('Masukkan URL terlebih dahulu.'); return; }
   const btn = event.currentTarget;
   const original = btn.innerHTML;
-  btn.innerHTML =
-    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12"/></svg> Memproses...';
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12"/></svg> Memproses...';
   btn.disabled = true;
   setTimeout(() => {
     btn.innerHTML = original;
