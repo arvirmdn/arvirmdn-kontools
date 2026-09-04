@@ -310,7 +310,7 @@ function goPage(pageId, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById('page-' + pageId);
   if (target) target.classList.add('active');
-  if (window.innerWidth <= 768) toggleSidebar();
+  if (window.innerWidth <= 768 && !sidebarCollapsed) toggleSidebarDesktop();
 }
 
 // ===== LINK TO APK =====
