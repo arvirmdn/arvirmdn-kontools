@@ -6,8 +6,19 @@ const logoutBtn = document.getElementById("logoutBtn");
 const toast = document.getElementById("toast");
 const navItems = document.querySelectorAll(".nav-item");
 const pageName = document.getElementById("pageName");
-const overviewPage = document.getElementById("overviewPage");
-const comingPage = document.getElementById("comingPage");
+const pages = {
+  overview: document.getElementById("overviewPage"),
+  tools: document.getElementById("toolsPage"),
+  profile: document.getElementById("profilePage"),
+  settings: document.getElementById("settingsPage")
+};
+
+const pageLabels = {
+  overview: "Overview",
+  tools: "Tools",
+  profile: "Profil",
+  settings: "Pengaturan"
+};
 
 function showToast(text) {
   toast.textContent = text;
@@ -25,22 +36,24 @@ function closeNav() {
   backdrop.classList.remove("show");
 }
 
+function showPage(page) {
+  if (!pages[page]) return;
+  navItems.forEach(item => item.classList.toggle("active", item.dataset.page === page));
+  Object.entries(pages).forEach(([key, el]) => el.classList.toggle("active", key === page));
+  pageName.textContent = pageLabels[page];
+  if (window.innerWidth < 900) closeNav();
+}
+
 openSidebar.addEventListener("click", openNav);
 closeSidebar.addEventListener("click", closeNav);
 backdrop.addEventListener("click", closeNav);
 
 navItems.forEach(item => {
-  item.addEventListener("click", () => {
-    navItems.forEach(x => x.classList.remove("active"));
-    item.classList.add("active");
+  item.addEventListener("click", () => showPage(item.dataset.page));
+});
 
-    const isOverview = item.dataset.page === "overview";
-    overviewPage.classList.toggle("active", isOverview);
-    comingPage.classList.toggle("active", !isOverview);
-    pageName.textContent = isOverview ? "Overview" : "Menu Baru";
-
-    if (window.innerWidth < 900) closeNav();
-  });
+document.querySelectorAll("[data-page-target]").forEach(button => {
+  button.addEventListener("click", () => showPage(button.dataset.pageTarget));
 });
 
 document.getElementById("notifyBtn").addEventListener("click", () => {
@@ -70,5 +83,10 @@ fetch("/api/me", { credentials: "same-origin" })
     document.getElementById("heroName").textContent = user.name.split(" ")[0];
     document.getElementById("avatar").textContent = initial;
     document.getElementById("topAvatar").textContent = initial;
+    document.getElementById("profileAvatar").textContent = initial;
+    document.getElementById("profileName").textContent = user.name;
+    document.getElementById("profileEmail").textContent = user.email;
+    document.getElementById("profileNameValue").textContent = user.name;
+    document.getElementById("profileEmailValue").textContent = user.email;
   })
   .catch(() => window.location.assign("/"));

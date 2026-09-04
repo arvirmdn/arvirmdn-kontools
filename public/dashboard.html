@@ -25,10 +25,10 @@
     </div>
 
     <nav class="nav">
+      <button class="nav-item" type="button" data-page="profile"><span>◎</span>Profil</button>
       <button class="nav-item active" type="button" data-page="overview"><span>⌂</span>Overview</button>
-      <button class="nav-item" type="button" data-page="coming"><span>✦</span>Menu Baru</button>
-      <button class="nav-item" type="button" data-page="coming"><span>◈</span>Tools</button>
-      <button class="nav-item" type="button" data-page="coming"><span>⚙</span>Pengaturan</button>
+      <button class="nav-item" type="button" data-page="tools"><span>✦</span>Tools</button>
+      <button class="nav-item" type="button" data-page="settings"><span>⚙</span>Pengaturan</button>
     </nav>
 
     <div class="side-bottom">
@@ -49,32 +49,53 @@
 
     <main class="content">
       <section id="overviewPage" class="page active">
-        <div class="hero-card">
+        <div class="hero-card overview-hero">
           <div>
-            <span class="eyebrow">YOUR SPACE</span>
+            <span class="eyebrow">OVERVIEW</span>
             <h1>Halo, <span id="heroName">User</span>.</h1>
-            <p>Selamat datang di dashboard baru kamu. Bagian dalamnya sengaja dibuat kosong dulu supaya nanti kita isi sesuai kebutuhanmu.</p>
+            <p>Selamat datang kembali. Kelola akun dan akses semua fitur ARVIR dari satu tempat.</p>
           </div>
           <div class="hero-orb">A</div>
         </div>
 
-        <div class="section-head">
-          <div><span class="eyebrow">QUICK ACCESS</span><h2>Siap dikembangkan</h2></div>
+        <div class="section-head overview-section-head">
+          <div><span class="eyebrow">ACCOUNT STATUS</span><h2>Ringkasan akun</h2></div>
         </div>
 
-        <div class="empty-grid">
-          <article class="empty-card"><span>01</span><h3>Menu pertama</h3><p>Tempat untuk fitur yang nanti kamu tentukan.</p></article>
-          <article class="empty-card"><span>02</span><h3>Menu kedua</h3><p>Bisa diubah menjadi tools, aplikasi, bot, atau lainnya.</p></article>
-          <article class="empty-card"><span>03</span><h3>Menu ketiga</h3><p>Struktur sudah siap untuk dikembangkan.</p></article>
+        <div class="stats-grid">
+          <article class="stat-card"><span class="stat-icon">✓</span><div><strong>Aktif</strong><small>Status akun</small></div></article>
+          <article class="stat-card"><span class="stat-icon">✦</span><div><strong>Premium</strong><small>Akses platform</small></div></article>
+          <article class="stat-card"><span class="stat-icon">●</span><div><strong>Online</strong><small>Status sistem</small></div></article>
+        </div>
+
+        <div class="section-head overview-section-head quick-head">
+          <div><span class="eyebrow">QUICK ACCESS</span><h2>Akses cepat</h2></div>
+        </div>
+        <div class="empty-grid quick-grid">
+          <button class="empty-card quick-card" type="button" data-page-target="tools"><span>01</span><h3>Tools</h3><p>Kumpulan tools yang akan kamu gunakan.</p></button>
+          <button class="empty-card quick-card" type="button" data-page-target="profile"><span>02</span><h3>Profil</h3><p>Lihat informasi akun kamu.</p></button>
+          <button class="empty-card quick-card" type="button" data-page-target="settings"><span>03</span><h3>Pengaturan</h3><p>Atur preferensi dashboard.</p></button>
         </div>
       </section>
 
-      <section id="comingPage" class="page">
-        <div class="placeholder-card">
-          <span class="eyebrow">COMING NEXT</span>
-          <h1>Bagian ini belum diisi.</h1>
-          <p>Nanti kamu tinggal bilang mau memasukkan fitur apa di sini.</p>
+      <section id="toolsPage" class="page">
+        <div class="placeholder-card"><span class="eyebrow">TOOLS</span><h1>Tools segera hadir.</h1><p>Area ini sudah disiapkan untuk tools yang akan kamu tambahkan.</p></div>
+      </section>
+
+      <section id="profilePage" class="page">
+        <div class="profile-page-card">
+          <div class="profile-page-head"><div class="avatar profile-large" id="profileAvatar">A</div><div><span class="eyebrow">MY PROFILE</span><h1 id="profileName">User</h1><p id="profileEmail">email</p></div></div>
+          <div class="profile-info-grid">
+            <div class="profile-info"><small>Nama</small><strong id="profileNameValue">User</strong></div>
+            <div class="profile-info"><small>Email</small><strong id="profileEmailValue">email</strong></div>
+            <div class="profile-info"><small>Status</small><strong class="accent-text">Aktif</strong></div>
+            <div class="profile-info"><small>Akses</small><strong>Premium</strong></div>
+          </div>
         </div>
+      </section>
+
+      <section id="settingsPage" class="page">
+        <div class="placeholder-card"><span class="eyebrow">SETTINGS</span><h1>Pengaturan.</h1><p>Pengaturan dashboard akan ditambahkan di sini.</p></div>
       </section>
     </main>
   </div>
