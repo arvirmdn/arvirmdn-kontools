@@ -4,14 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>arvirmdn kontools v0.1</title>
+  <meta name="description" content="arvirmdn kontools — kumpulan tools praktis: link to APK, status WA HD, dan lainnya.">
+  <meta property="og:title" content="arvirmdn kontools v0.1">
+  <meta property="og:description" content="Kumpulan tools praktis dalam satu dashboard.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+  <!-- ==================== APP LOADER ==================== -->
+  <div class="app-loader" id="appLoader">
+    <div class="app-loader-spinner"></div>
+  </div>
+
   <div class="particles" id="particles"></div>
 
+  <!-- ==================== TOAST CONTAINER ==================== -->
+  <div class="toast-container" id="toastContainer"></div>
+
   <!-- ==================== AUTH PAGE ==================== -->
-  <div class="auth-wrap" id="authPage">
+  <div class="auth-wrap" id="authPage" style="visibility:hidden;">
     <div class="auth-card">
       <div class="auth-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -154,26 +166,35 @@
         arvirmdn
       </div>
       <nav class="sidebar-nav">
-        <button class="nav-item active" onclick="goPage('profil', this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-          Profil
-        </button>
-        <button class="nav-item" onclick="goPage('linktoapk', this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-          </svg>
-          Link to APK
-        </button>
-        <button class="nav-item" onclick="goPage('statushd', this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-          </svg>
-          Status HD
-        </button>
+        <div class="nav-section">
+          <div class="nav-section-label">Akun</div>
+          <button class="nav-item active" onclick="goPage('profil', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            Profil
+          </button>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Tools</div>
+          <button class="nav-item" onclick="goPage('linktoapk', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
+            Link to APK
+          </button>
+          <button class="nav-item" onclick="goPage('statuswa', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="18" rx="3"/>
+              <path d="M12 8v7"/>
+              <path d="M8.5 11.5 12 8l3.5 3.5"/>
+              <path d="M7 19h10"/>
+            </svg>
+            Status WA HD
+          </button>
+        </div>
       </nav>
       <div class="sidebar-footer">
         <button class="nav-item" id="collapseBtn" onclick="toggleSidebarDesktop()">
@@ -206,12 +227,27 @@
           </button>
           <span class="page-title" id="pageTitle">Profil</span>
         </div>
-        <div class="user-pill">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-          <span id="userName">Pengguna</span>
+        <div class="topbar-right">
+          <div class="topbar-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" placeholder="Cari tools..." id="topbarSearch">
+          </div>
+          <button class="icon-btn" title="Notifikasi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </button>
+          <div class="user-pill">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span id="userName">Pengguna</span>
+          </div>
         </div>
       </header>
 
@@ -220,7 +256,16 @@
         <div class="page active" id="page-profil">
           <div class="tool-card">
             <div class="profil-header">
-              <div class="profil-avatar" id="profilAvatar">A</div>
+              <div class="profil-avatar-wrap">
+                <div class="profil-avatar" id="profilAvatar">A</div>
+                <button class="avatar-edit-btn" onclick="document.getElementById('avatarInput').click()" title="Ganti foto">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                </button>
+                <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="handleAvatarUpload(this)">
+              </div>
               <div class="profil-info">
                 <h2 id="profilName">Pengguna</h2>
                 <p id="profilEmail">-</p>
@@ -282,22 +327,22 @@
                 Generate APK
               </button>
             </div>
-            <div id="apkResult" style="display:none;">
-              <div style="background:var(--bg); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; margin-top:8px;">
-                <div style="font-size:13px; color:var(--text-tertiary); margin-bottom:8px;">Hasil generate:</div>
-                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                  <div style="width:40px; height:40px; border-radius:var(--radius-sm); background:var(--accent-soft); display:flex; align-items:center; justify-content:center; color:var(--accent);">
+            <div class="apk-result" id="apkResult">
+              <div class="apk-result-card">
+                <div class="apk-result-label">Hasil generate:</div>
+                <div class="apk-result-row">
+                  <div class="apk-result-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                       <rect x="2" y="3" width="20" height="14" rx="2"/>
                       <line x1="8" y1="21" x2="16" y2="21"/>
                       <line x1="12" y1="17" x2="12" y2="21"/>
                     </svg>
                   </div>
-                  <div style="flex:1; min-width:0;">
-                    <div style="font-size:14px; font-weight:500; color:var(--text-primary);" id="apkFileName">app-release.apk</div>
-                    <div style="font-size:12px; color:var(--text-tertiary);" id="apkFileMeta">2.4 MB &middot; Android 7+</div>
+                  <div class="apk-result-info">
+                    <div class="apk-result-name" id="apkFileName">app-release.apk</div>
+                    <div class="apk-result-meta" id="apkFileMeta">2.4 MB &middot; Android 7+</div>
                   </div>
-                  <button class="tool-btn" style="padding:8px 16px; font-size:13px;" onclick="alert('Download dimulai (simulasi)')">
+                  <button class="tool-btn tool-btn-sm" onclick="showToast('Download dimulai (simulasi)', 'info')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                       <polyline points="7 10 12 15 17 10"/>
@@ -311,46 +356,43 @@
           </div>
         </div>
 
-        <!-- PAGE: STATUS HD -->
-        <div class="page" id="page-statushd">
+        <!-- PAGE: STATUS WA HD -->
+        <div class="page" id="page-statuswa">
           <div class="tool-card">
             <h2>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                <rect x="2" y="3" width="20" height="18" rx="3"/>
+                <path d="M12 8v7"/>
+                <path d="M8.5 11.5 12 8l3.5 3.5"/>
+                <path d="M7 19h10"/>
               </svg>
-              Status HD
+              Status WA HD
             </h2>
-            <p class="desc">Pantau status server, koneksi, dan performa sistem secara real-time.</p>
-            <div class="status-grid">
-              <div class="status-box">
-                <div class="label"><span class="status-dot dot-green"></span>Server</div>
-                <div class="value" id="statusServer">Online</div>
-                <div class="sub">Respon 42ms</div>
-              </div>
-              <div class="status-box">
-                <div class="label"><span class="status-dot dot-green"></span>Database</div>
-                <div class="value" id="statusDb">Aktif</div>
-                <div class="sub">Latency 12ms</div>
-              </div>
-              <div class="status-box">
-                <div class="label"><span class="status-dot dot-yellow"></span>Storage</div>
-                <div class="value" id="statusStorage">72%</div>
-                <div class="sub">14.2 / 20 GB</div>
-              </div>
-              <div class="status-box">
-                <div class="label"><span class="status-dot dot-green"></span>API</div>
-                <div class="value" id="statusApi">Normal</div>
-                <div class="sub">99.9% uptime</div>
-              </div>
-              <div class="status-box">
-                <div class="label"><span class="status-dot dot-green"></span>SSL</div>
-                <div class="value" id="statusSsl">Valid</div>
-                <div class="sub">Expires 120 hari</div>
-              </div>
-              <div class="status-box">
-                <div class="label"><span class="status-dot dot-red"></span>Backup</div>
-                <div class="value" id="statusBackup">2 hari</div>
-                <div class="sub">Terakhir: 02 Sep</div>
+            <p class="desc">Upload foto atau video buat dijadiin status WhatsApp kualitas HD, nggak kepotong kompres kayak status biasa.</p>
+
+            <div class="wa-dropzone" id="waDropzone" onclick="document.getElementById('waFileInput').click()">
+              <input type="file" id="waFileInput" accept="image/*,video/*" multiple style="display:none;" onchange="handleWaUpload(this.files)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <div class="wa-dropzone-title">Tarik &amp; taruh file di sini</div>
+              <div class="wa-dropzone-sub">atau klik untuk pilih foto / video &middot; JPG, PNG, MP4</div>
+            </div>
+
+            <div class="wa-section-head">
+              <span>Status siap upload</span>
+              <span class="wa-count" id="waCount">0 file</span>
+            </div>
+            <div class="wa-grid" id="waGrid">
+              <div class="wa-empty" id="waEmpty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="9" cy="9" r="2"/>
+                  <path d="M21 15l-5-5L5 21"/>
+                </svg>
+                Belum ada status yang diupload
               </div>
             </div>
           </div>

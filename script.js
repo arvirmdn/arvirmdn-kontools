@@ -99,6 +99,43 @@ window.addEventListener('load', function() {
 });
 window.addEventListener('resize', updateSlider);
 
+// ===== TOASTS =====
+const TOAST_ICONS = {
+  success: '<path d="M20 6 9 17l-5-5"/>',
+  error: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+  info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'
+};
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.innerHTML = `
+    <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${TOAST_ICONS[type] || TOAST_ICONS.info}</svg>
+    <span class="toast-msg"></span>
+    <button class="toast-close" aria-label="Tutup">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>`;
+  toast.querySelector('.toast-msg').textContent = message;
+  const remove = () => {
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 250);
+  };
+  toast.querySelector('.toast-close').onclick = remove;
+  container.appendChild(toast);
+  setTimeout(remove, 4000);
+}
+
+// ===== INPUT VALIDATION HELPERS =====
+function markError(input) {
+  if (!input) return;
+  input.classList.remove('success');
+  input.classList.add('error');
+}
+function clearFieldStates(...inputs) {
+  inputs.forEach(i => i && i.classList.remove('error', 'success'));
+}
+
 // ===== AUTH FUNCTIONS =====
 function setLoading(btn, loading) {
   if (loading) {
@@ -126,13 +163,22 @@ async function doAuth(action) {
   const btn = event.currentTarget;
 
   if (action === 'daftar') {
-    const user = document.getElementById('regUser').value.trim();
-    const pass = document.getElementById('regPass').value;
-    const confirm = document.getElementById('regConfirm').value;
+    const userInput = document.getElementById('regUser');
+    const passInput = document.getElementById('regPass');
+    const confirmInput = document.getElementById('regConfirm');
+    const user = userInput.value.trim();
+    const pass = passInput.value;
+    const confirm = confirmInput.value;
+    clearFieldStates(userInput, passInput, confirmInput);
 
-    if (!user || !pass) { alert('Nama pengguna dan kata sandi wajib diisi.'); return; }
-    if (pass !== confirm) { alert('Konfirmasi kata sandi tidak cocok.'); return; }
-    if (pass.length < 4) { alert('Kata sandi minimal 4 karakter.'); return; }
+    if (!user) { markError(userInput); showToast('Nama pengguna wajib diisi.', 'error'); return; }
+    if (!pass) { markError(passInput); showToast('Kata sandi wajib diisi.', 'error'); return; }
+    if (pass.length < 4) { markError(passInput); showToast('Kata sandi minimal 4 karakter.', 'error'); return; }
+    if (pass !== confirm) { markError(confirmInput); showToast('Konfirmasi kata sandi tidak cocok.', 'error'); return; }
+
+    userInput.classList.add('success');
+    passInput.classList.add('success');
+    confirmInput.classList.add('success');
 
     setLoading(btn, true);
     try {
@@ -140,11 +186,11 @@ async function doAuth(action) {
         method: 'POST',
         body: JSON.stringify({ username: user, password: pass, device_fingerprint: DEVICE_FINGERPRINT })
       });
-      alert('Akun berhasil dibuat! Silakan masuk.');
+      showToast('Akun berhasil dibuat! Silakan masuk.', 'success');
       switchTab('login');
       document.getElementById('logUser').value = user;
     } catch (err) {
-      alert('Error: ' + err.message);
+      showToast(err.message || 'Gagal membuat akun.', 'error');
     } finally {
       setLoading(btn, false);
     }
@@ -152,10 +198,14 @@ async function doAuth(action) {
   }
 
   if (action === 'masuk') {
-    const user = document.getElementById('logUser').value.trim();
-    const pass = document.getElementById('logPass').value;
+    const userInput = document.getElementById('logUser');
+    const passInput = document.getElementById('logPass');
+    const user = userInput.value.trim();
+    const pass = passInput.value;
+    clearFieldStates(userInput, passInput);
 
-    if (!user || !pass) { alert('Nama pengguna dan kata sandi wajib diisi.'); return; }
+    if (!user) { markError(userInput); showToast('Nama pengguna wajib diisi.', 'error'); return; }
+    if (!pass) { markError(passInput); showToast('Kata sandi wajib diisi.', 'error'); return; }
 
     setLoading(btn, true);
     try {
@@ -166,14 +216,15 @@ async function doAuth(action) {
       localStorage.setItem('arvirmdn_token', data.token);
       enterDashboard(data.user);
     } catch (err) {
-      alert('Error: ' + err.message);
+      markError(passInput);
+      showToast(err.message || 'Nama pengguna atau kata sandi salah.', 'error');
     } finally {
       setLoading(btn, false);
     }
   }
 }
 
-function enterDashboard(user) {
+function enterDashboard(user, skipAnim) {
   const username = user.username || 'Pengguna';
   const joinDate = user.created_at
     ? new Date(user.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -186,9 +237,19 @@ function enterDashboard(user) {
   document.getElementById('profilUser').textContent = username;
   document.getElementById('profilId').textContent = user.id ? ('ID-' + String(user.id).padStart(6, '0')) : '-';
   document.getElementById('profilJoin').textContent = joinDate;
-  document.getElementById('profilAvatar').textContent = username.charAt(0).toUpperCase();
+  const avatarEl = document.getElementById('profilAvatar');
+  avatarEl.textContent = username.charAt(0).toUpperCase();
+  avatarEl.style.backgroundImage = '';
 
   const authPage = document.getElementById('authPage');
+
+  if (skipAnim) {
+    // Sesi udah valid dari awal load - langsung ke dashboard, auth page nggak pernah kelihatan.
+    authPage.style.display = 'none';
+    document.getElementById('dashPage').classList.add('active');
+    return;
+  }
+
   authPage.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
   authPage.style.opacity = '0';
   authPage.style.transform = 'scale(0.97)';
@@ -199,31 +260,54 @@ function enterDashboard(user) {
 }
 
 async function checkSession() {
+  const loader = document.getElementById('appLoader');
+  const authPage = document.getElementById('authPage');
   const token = localStorage.getItem('arvirmdn_token');
-  if (!token) return;
+
+  if (!token) {
+    revealAuthPage();
+    return;
+  }
   try {
     const data = await api('/api/me', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
-    if (data.user) enterDashboard(data.user);
+    if (data.user) {
+      enterDashboard(data.user, true);
+    } else {
+      revealAuthPage();
+    }
   } catch {
     localStorage.removeItem('arvirmdn_token');
+    revealAuthPage();
+  } finally {
+    if (loader) loader.classList.add('hide');
   }
 }
 
+function revealAuthPage() {
+  const loader = document.getElementById('appLoader');
+  const authPage = document.getElementById('authPage');
+  if (authPage) authPage.style.visibility = 'visible';
+  if (loader) loader.classList.add('hide');
+}
+
 async function doForgot() {
-  const input = document.getElementById('forgotInput').value.trim();
-  if (!input) { alert('Silakan masukkan nama pengguna.'); return; }
+  const field = document.getElementById('forgotInput');
+  const input = field.value.trim();
+  clearFieldStates(field);
+  if (!input) { markError(field); showToast('Silakan masukkan nama pengguna.', 'error'); return; }
 
   try {
     const data = await api('/api/forgot', {
       method: 'POST',
       body: JSON.stringify({ username: input })
     });
-    alert('Kata sandi baru: ' + data.newPassword + '\n(Simpan dengan baik!)');
+    showToast('Kata sandi baru: ' + data.newPassword + ' — simpan dengan baik.', 'success');
     switchTab('login');
   } catch (err) {
-    alert('Error: ' + err.message);
+    markError(field);
+    showToast(err.message || 'Gagal reset kata sandi.', 'error');
   }
 }
 
@@ -238,6 +322,7 @@ function doLogout() {
     dashPage.style.transition = '';
     const authPage = document.getElementById('authPage');
     authPage.style.display = 'flex';
+    authPage.style.visibility = 'visible';
     requestAnimationFrame(() => {
       authPage.style.opacity = '0';
       authPage.style.transform = 'scale(0.97)';
@@ -246,7 +331,12 @@ function doLogout() {
         authPage.style.transform = 'scale(1)';
       });
     });
-    document.querySelectorAll('.input').forEach(i => (i.value = ''));
+    document.querySelectorAll('.input').forEach(i => { i.value = ''; i.classList.remove('error', 'success'); });
+    document.getElementById('apkResult').classList.remove('show');
+    const avatar = document.getElementById('profilAvatar');
+    avatar.style.backgroundImage = '';
+    waFiles = [];
+    renderWaGrid();
     switchTab('login');
     goPage('profil', document.querySelector('.nav-item'));
     const sb = document.getElementById('sidebar');
@@ -305,7 +395,7 @@ function toggleSidebarDesktop() {
 function goPage(pageId, el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (el) el.classList.add('active');
-  const titles = { profil: 'Profil', linktoapk: 'Link to APK', statushd: 'Status HD' };
+  const titles = { profil: 'Profil', linktoapk: 'Link to APK', statuswa: 'Status WA HD' };
   document.getElementById('pageTitle').textContent = titles[pageId] || 'Profil';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById('page-' + pageId);
@@ -315,8 +405,11 @@ function goPage(pageId, el) {
 
 // ===== LINK TO APK =====
 function generateApk() {
-  const url = document.getElementById('apkUrl').value.trim();
-  if (!url) { alert('Masukkan URL terlebih dahulu.'); return; }
+  const urlInput = document.getElementById('apkUrl');
+  const url = urlInput.value.trim();
+  clearFieldStates(urlInput);
+  if (!url) { markError(urlInput); showToast('Masukkan URL terlebih dahulu.', 'error'); return; }
+
   const btn = event.currentTarget;
   const original = btn.innerHTML;
   btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12"/></svg> Memproses...';
@@ -324,8 +417,99 @@ function generateApk() {
   setTimeout(() => {
     btn.innerHTML = original;
     btn.disabled = false;
+    urlInput.classList.add('success');
     const domain = url.replace(/^https?:\/\//, '').split('/')[0];
     document.getElementById('apkFileName').textContent = domain + '.apk';
-    document.getElementById('apkResult').style.display = 'block';
+    document.getElementById('apkResult').classList.add('show');
+    showToast('APK berhasil dibuat.', 'success');
   }, 1500);
 }
+
+// ===== AVATAR UPLOAD =====
+function handleAvatarUpload(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('File harus berupa gambar.', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const avatar = document.getElementById('profilAvatar');
+    avatar.style.backgroundImage = `url(${e.target.result})`;
+    avatar.textContent = '';
+    showToast('Foto profil diperbarui.', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== STATUS WA HD (upload UI) =====
+let waFiles = [];
+
+function handleWaUpload(fileList) {
+  const files = Array.from(fileList || []);
+  if (!files.length) return;
+  files.forEach(file => {
+    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      waFiles.push({ url: e.target.result, type: file.type, name: file.name });
+      renderWaGrid();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeWaFile(index) {
+  waFiles.splice(index, 1);
+  renderWaGrid();
+}
+
+function renderWaGrid() {
+  const grid = document.getElementById('waGrid');
+  const empty = document.getElementById('waEmpty');
+  const count = document.getElementById('waCount');
+  count.textContent = waFiles.length + ' file';
+
+  grid.querySelectorAll('.wa-item').forEach(el => el.remove());
+
+  if (!waFiles.length) {
+    empty.style.display = 'flex';
+    return;
+  }
+  empty.style.display = 'none';
+
+  waFiles.forEach((f, i) => {
+    const item = document.createElement('div');
+    item.className = 'wa-item';
+    const isVideo = f.type.startsWith('video/');
+    item.innerHTML = `
+      ${isVideo ? `<video src="${f.url}" muted></video>` : `<img src="${f.url}" alt="${f.name}">`}
+      <span class="wa-item-badge">${isVideo ? 'Video' : 'Foto'}</span>
+      <button class="wa-item-remove" title="Hapus">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>`;
+    item.querySelector('.wa-item-remove').onclick = (ev) => { ev.stopPropagation(); removeWaFile(i); };
+    grid.appendChild(item);
+  });
+}
+
+(function setupWaDropzone() {
+  document.addEventListener('DOMContentLoaded', () => {
+    const zone = document.getElementById('waDropzone');
+    if (!zone) return;
+    ['dragenter', 'dragover'].forEach(evt => {
+      zone.addEventListener(evt, (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+      zone.addEventListener(evt, (e) => { e.preventDefault(); zone.classList.remove('drag-over'); });
+    });
+    zone.addEventListener('drop', (e) => {
+      if (e.dataTransfer && e.dataTransfer.files) handleWaUpload(e.dataTransfer.files);
+    });
+  });
+})();
+
+// Ilangin state error di input begitu user mulai ngetik ulang
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.input').forEach(input => {
+    input.addEventListener('input', () => input.classList.remove('error'));
+  });
+});
