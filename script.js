@@ -251,6 +251,11 @@ function doLogout() {
     goPage('profil', document.querySelector('.nav-item'));
     const sb = document.getElementById('sidebar');
     sb.classList.remove('collapsed');
+    sb.style.transform = '';
+    sb.style.marginLeft = '';
+    sb.style.opacity = '';
+    sb.style.pointerEvents = '';
+    sidebarCollapsed = false;
     document.getElementById('collapseText').textContent = 'Sembunyikan Menu';
   }, 300);
 }
@@ -270,14 +275,28 @@ function toggleSidebarDesktop() {
   const icon = document.querySelector('#collapseBtn svg');
   sidebarCollapsed = !sidebarCollapsed;
 
+  // PENTING: animasi geser dipaksa lewat inline style di sini (bukan cuma
+  // toggle class .collapsed di style.css). Inline style dari JS ini SELALU
+  // menang di atas aturan CSS manapun, jadi dijamin kelihatan begitu
+  // script.js ini ke-deploy -- gak tergantung lagi apakah style.css yang
+  // baru beneran ke-deploy/ke-cache dengan benar di server.
+  const w = sb.offsetWidth || 240;
+  sb.style.transition = 'transform .35s cubic-bezier(.22,1,.36,1), margin-left .35s cubic-bezier(.22,1,.36,1), opacity .35s ease';
+
   if (sidebarCollapsed) {
-    // Collapse - sembunyikan
     sb.classList.add('collapsed');
+    sb.style.transform = 'translateX(-' + w + 'px)';
+    sb.style.marginLeft = '-' + w + 'px';
+    sb.style.opacity = '0';
+    sb.style.pointerEvents = 'none';
     txt.textContent = 'Tampilkan Menu';
     icon.innerHTML = '<polyline points="9 18 15 12 9 6"/>';
   } else {
-    // Expand - tampilkan
     sb.classList.remove('collapsed');
+    sb.style.transform = 'translateX(0)';
+    sb.style.marginLeft = '0';
+    sb.style.opacity = '1';
+    sb.style.pointerEvents = '';
     txt.textContent = 'Sembunyikan Menu';
     icon.innerHTML = '<polyline points="15 18 9 12 15 6"/>';
   }
