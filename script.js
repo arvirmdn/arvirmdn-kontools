@@ -269,11 +269,15 @@ function toggleSidebarDesktop() {
   const txt = document.getElementById('collapseText');
   const icon = document.querySelector('#collapseBtn svg');
   sidebarCollapsed = !sidebarCollapsed;
-  sb.classList.toggle('collapsed', sidebarCollapsed);
+
   if (sidebarCollapsed) {
+    // Collapse - sembunyikan
+    sb.classList.add('collapsed');
     txt.textContent = 'Tampilkan Menu';
     icon.innerHTML = '<polyline points="9 18 15 12 9 6"/>';
   } else {
+    // Expand - tampilkan
+    sb.classList.remove('collapsed');
     txt.textContent = 'Sembunyikan Menu';
     icon.innerHTML = '<polyline points="15 18 9 12 15 6"/>';
   }
