@@ -243,37 +243,21 @@ function processWaHdFile(file) {
 async function shareWaStatus() {
   if (!waSelectedFile) return showToast("Pilih foto atau video terlebih dahulu.");
 
-  // Android/Chrome tidak menyediakan deep-link resmi untuk langsung membuka
-  // composer Status WhatsApp sambil menyisipkan file. Cara paling dekat adalah
-  // Web Share dengan file, sehingga WhatsApp bisa dibuka sebagai tujuan share.
-  if (!navigator.share) {
-    showToast("Gunakan Chrome Android untuk membagikan media ke WhatsApp.");
-    return;
-  }
-
-  const shareData = { files: [waSelectedFile] };
-  if (navigator.canShare && !navigator.canShare({ files: [waSelectedFile] })) {
-    showToast("Media ini tidak bisa dibagikan langsung ke WhatsApp dari browser.");
-    return;
-  }
-
+  // Buka aplikasi WhatsApp secara langsung. Browser tidak dapat memaksa
+  // WhatsApp membuka Status Saya sambil membawa file secara otomatis.
   try {
     waCreateStatusBtn.disabled = true;
     waCreateStatusBtn.textContent = "Membuka WhatsApp…";
-    await navigator.share(shareData);
-    waHdResult.hidden = false;
-    waSendTitle.textContent = "WhatsApp dibuka";
-    waSendDetail.textContent = "Di WhatsApp, pilih Status saya untuk melanjutkan.";
-    showToast("WhatsApp dibuka. Pilih Status saya.");
+    window.location.href = "whatsapp://";
+
+    setTimeout(() => {
+      waCreateStatusBtn.disabled = false;
+      waCreateStatusBtn.innerHTML = 'Buat Status <span>→</span>';
+    }, 1500);
   } catch (error) {
-    if (error && error.name === "AbortError") {
-      showToast("Bagikan dibatalkan.");
-    } else {
-      showToast(error.message || "Gagal membuka WhatsApp.");
-    }
-  } finally {
     waCreateStatusBtn.disabled = false;
     waCreateStatusBtn.innerHTML = 'Buat Status <span>→</span>';
+    showToast("WhatsApp tidak dapat dibuka dari browser ini.");
   }
 }
 
