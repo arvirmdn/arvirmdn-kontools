@@ -107,7 +107,7 @@
             <div class="tool-card-copy">
               <span class="tool-badge">MEDIA</span>
               <h2>Upload Status WA HD</h2>
-              <p>Masukkan nomor WhatsApp, pilih foto atau video, lalu siapkan media untuk dikirim bot ke group dan tag nomor tersebut.</p>
+              <p>Pilih foto atau video, lalu buat Status WhatsApp HD langsung dari HP.</p>
             </div>
             <button class="primary-btn tool-open-btn" id="openWaHdBtn" type="button">Buka <span>→</span></button>
           </article>
@@ -115,7 +115,7 @@
 
         <div class="tool-workspace" id="waHdWorkspace" hidden>
           <div class="tool-workspace-head">
-            <div><span class="eyebrow">UPLOAD STATUS WA HD</span><h2>Generate Token</h2><p>Upload foto/video, tekan Generate Token, lalu langsung kirim token ke group. Media otomatis disiapkan oleh bot.</p></div>
+            <div><span class="eyebrow">UPLOAD STATUS WA HD</span><h2>Buat Status</h2><p>Upload foto atau video, lalu tekan Buat Status untuk membuka WhatsApp.</p></div>
             <button class="icon-btn workspace-close" id="closeWaHdBtn" type="button" aria-label="Tutup tool">×</button>
           </div>
 
@@ -139,17 +139,15 @@
             <span>File tidak di-render ulang atau dikompres oleh website.</span>
           </div>
 
-          <div class="token-panel">
-            <div class="token-panel-copy"><span>TOKEN</span><strong id="waTokenValue">—</strong><small id="waTokenStatus">Upload media lalu generate token.</small></div>
+          <div class="token-panel status-action-panel">
+            <div class="token-panel-copy"><span>WHATSAPP STATUS</span><strong>Siap dibagikan</strong><small>Media tetap memakai file asli tanpa render ulang.</small></div>
             <div class="token-actions">
-              <button class="secondary-btn" id="waGenerateTokenBtn" type="button" disabled>Generate Token</button>
-              <button class="primary-btn" id="waBotBtn" type="button" disabled hidden>Jadi Bot <span>→</span></button>
+              <button class="primary-btn" id="waCreateStatusBtn" type="button" disabled>Buat Status <span>→</span></button>
             </div>
           </div>
 
-          <div class="wa-member-status" id="waMemberStatus" hidden></div>
           <div class="tool-result wa-send-result" id="waHdResult" hidden>
-            <div class="wa-result-copy"><strong id="waSendTitle">Token siap</strong><small id="waSendDetail">Kirim token ke group WhatsApp.</small></div>
+            <div class="wa-result-copy"><strong id="waSendTitle">WhatsApp dibuka</strong><small id="waSendDetail">Pilih Status saya untuk mengunggah media.</small></div>
           </div>
         </div>
       </section>

@@ -160,7 +160,7 @@ fetch("/api/me", { credentials: "same-origin" })
   })
   .catch(() => window.location.assign("/"));
 
-// Upload Status WA HD — sistem token sederhana.
+// Upload Status WA HD — langsung bagikan ke WhatsApp Status.
 const waHdInput = document.getElementById("waHdInput");
 const waHdWorkspace = document.getElementById("waHdWorkspace");
 const openWaHdBtn = document.getElementById("openWaHdBtn");
@@ -172,14 +172,9 @@ const waFileInfo = document.getElementById("waFileInfo");
 const waHdResult = document.getElementById("waHdResult");
 const waSendTitle = document.getElementById("waSendTitle");
 const waSendDetail = document.getElementById("waSendDetail");
-const waMemberStatus = document.getElementById("waMemberStatus");
-const waGenerateTokenBtn = document.getElementById("waGenerateTokenBtn");
-const waBotBtn = document.getElementById("waBotBtn");
-const waTokenValue = document.getElementById("waTokenValue");
-const waTokenStatus = document.getElementById("waTokenStatus");
+const waCreateStatusBtn = document.getElementById("waCreateStatusBtn");
 let waSelectedFile = null;
 let waSelectedObjectUrl = null;
-let waToken = "";
 
 function openWaHdTool() {
   if (!waHdWorkspace) return;
@@ -197,79 +192,101 @@ if (waHdInput) waHdInput.addEventListener("change", () => processWaHdFile(waHdIn
 if (waDropzone) {
   ["dragover", "dragenter"].forEach(type => waDropzone.addEventListener(type, e => { e.preventDefault(); waDropzone.classList.add("dragging"); }));
   ["dragleave", "drop"].forEach(type => waDropzone.addEventListener(type, e => { e.preventDefault(); waDropzone.classList.remove("dragging"); }));
-  waDropzone.addEventListener("drop", e => { const f=e.dataTransfer.files?.[0]; if(f) processWaHdFile(f); });
+  waDropzone.addEventListener("drop", e => { const f = e.dataTransfer.files?.[0]; if (f) processWaHdFile(f); });
 }
-if (waGenerateTokenBtn) waGenerateTokenBtn.addEventListener("click", generateWaToken);
-if (waBotBtn) waBotBtn.addEventListener("click", sendWaTokenToBot);
+if (waCreateStatusBtn) waCreateStatusBtn.addEventListener("click", shareWaStatus);
 
 function isSupportedWaMedia(file) { return !!file && /^(image\/(jpeg|png|webp)|video\/(mp4|quicktime|webm))$/.test(file.type); }
 function formatBytes(bytes) {
   if (!Number.isFinite(bytes)) return "-";
   if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024*1024) return `${(bytes/1024).toFixed(1)} KB`;
-  if (bytes < 1024*1024*1024) return `${(bytes/(1024*1024)).toFixed(2)} MB`;
-  return `${(bytes/(1024*1024*1024)).toFixed(2)} GB`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
-function formatDuration(seconds) { if(!Number.isFinite(seconds)) return "-"; const t=Math.max(0,Math.round(seconds)); return `${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}`; }
-function setTokenStatus(type, text) { if(!waMemberStatus)return; waMemberStatus.hidden=false; waMemberStatus.className=`wa-member-status ${type}`; waMemberStatus.textContent=text; }
+function formatDuration(seconds) {
+  if (!Number.isFinite(seconds)) return "-";
+  const t = Math.max(0, Math.round(seconds));
+  return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
+}
 function processWaHdFile(file) {
   if (!file) return;
   if (!isSupportedWaMedia(file)) return showToast("Pilih foto JPG/PNG/WebP atau video MP4/MOV/WebM.");
-  if (file.size > 200*1024*1024) return showToast("Ukuran media maksimal 200 MB.");
+  if (file.size > 200 * 1024 * 1024) return showToast("Ukuran media maksimal 200 MB.");
   if (waSelectedObjectUrl) URL.revokeObjectURL(waSelectedObjectUrl);
-  waSelectedFile=file; waSelectedObjectUrl=URL.createObjectURL(file); waToken="";
-  waTokenValue.textContent="—"; waTokenStatus.textContent="Upload selesai. Tekan Generate Token.";
-  waGenerateTokenBtn.disabled=false; waBotBtn.disabled=true; waHdResult.hidden=true; waMemberStatus.hidden=true;
-  waMediaPreview.hidden=false; waPreviewMedia.innerHTML="";
-  if(file.type.startsWith("video/")) {
-    const v=document.createElement("video"); v.controls=true; v.playsInline=true; v.preload="metadata"; v.src=waSelectedObjectUrl;
-    v.addEventListener("loadedmetadata",()=>{waFileInfo.innerHTML=`<div><span>Nama</span><strong>${escapeHtml(file.name)}</strong></div><div><span>Ukuran</span><strong>${formatBytes(file.size)}</strong></div><div><span>Resolusi</span><strong>${v.videoWidth||"-"} × ${v.videoHeight||"-"}</strong></div><div><span>Durasi</span><strong>${formatDuration(v.duration)}</strong></div><div><span>Format</span><strong>${escapeHtml(file.type)}</strong></div>`;});
-    waPreviewMedia.appendChild(v); waFileInfo.innerHTML=`<div><span>Nama</span><strong>${escapeHtml(file.name)}</strong></div><div><span>Ukuran</span><strong>${formatBytes(file.size)}</strong></div>`;
+  waSelectedFile = file;
+  waSelectedObjectUrl = URL.createObjectURL(file);
+  waMediaPreview.hidden = false;
+  waHdResult.hidden = true;
+  waPreviewMedia.innerHTML = "";
+  waCreateStatusBtn.disabled = false;
+
+  if (file.type.startsWith("video/")) {
+    const v = document.createElement("video");
+    v.controls = true; v.playsInline = true; v.preload = "metadata"; v.src = waSelectedObjectUrl;
+    v.addEventListener("loadedmetadata", () => {
+      waFileInfo.innerHTML = `<div><span>Nama</span><strong>${escapeHtml(file.name)}</strong></div><div><span>Ukuran</span><strong>${formatBytes(file.size)}</strong></div><div><span>Resolusi</span><strong>${v.videoWidth || "-"} × ${v.videoHeight || "-"}</strong></div><div><span>Durasi</span><strong>${formatDuration(v.duration)}</strong></div><div><span>Format</span><strong>${escapeHtml(file.type)}</strong></div>`;
+    });
+    waPreviewMedia.appendChild(v);
+    waFileInfo.innerHTML = `<div><span>Nama</span><strong>${escapeHtml(file.name)}</strong></div><div><span>Ukuran</span><strong>${formatBytes(file.size)}</strong></div>`;
   } else {
-    const img=document.createElement("img"); img.alt="Preview foto asli"; img.src=waSelectedObjectUrl;
-    img.addEventListener("load",()=>{waFileInfo.innerHTML=`<div><span>Nama</span><strong>${escapeHtml(file.name)}</strong></div><div><span>Ukuran</span><strong>${formatBytes(file.size)}</strong></div><div><span>Resolusi</span><strong>${img.naturalWidth||"-"} × ${img.naturalHeight||"-"}</strong></div><div><span>Format</span><strong>${escapeHtml(file.type)}</strong></div>`;});
-    waPreviewMedia.appendChild(img); waFileInfo.innerHTML=`<div><span>Nama</span><strong>${escapeHtml(file.name)}</strong></div><div><span>Ukuran</span><strong>${formatBytes(file.size)}</strong></div>`;
+    const img = document.createElement("img");
+    img.alt = "Preview foto asli"; img.src = waSelectedObjectUrl;
+    img.addEventListener("load", () => {
+      waFileInfo.innerHTML = `<div><span>Nama</span><strong>${escapeHtml(file.name)}</strong></div><div><span>Ukuran</span><strong>${formatBytes(file.size)}</strong></div><div><span>Resolusi</span><strong>${img.naturalWidth || "-"} × ${img.naturalHeight || "-"}</strong></div><div><span>Format</span><strong>${escapeHtml(file.type)}</strong></div>`;
+    });
+    waPreviewMedia.appendChild(img);
+    waFileInfo.innerHTML = `<div><span>Nama</span><strong>${escapeHtml(file.name)}</strong></div><div><span>Ukuran</span><strong>${formatBytes(file.size)}</strong></div>`;
   }
 }
-async function generateWaToken() {
+
+async function shareWaStatus() {
   if (!waSelectedFile) return showToast("Pilih foto atau video terlebih dahulu.");
-  waGenerateTokenBtn.disabled=true; waBotBtn.disabled=true; waTokenStatus.textContent="Membuat token dan mengirim media ke bot…";
-  setTokenStatus("checking","Mengirim media ke nomor bot…");
+
+  // Android/Chrome tidak menyediakan deep-link resmi untuk langsung membuka
+  // composer Status WhatsApp sambil menyisipkan file. Cara paling dekat adalah
+  // Web Share dengan file, sehingga WhatsApp bisa dibuka sebagai tujuan share.
+  if (!navigator.share) {
+    showToast("Gunakan Chrome Android untuk membagikan media ke WhatsApp.");
+    return;
+  }
+
+  const shareData = { files: [waSelectedFile] };
+  if (navigator.canShare && !navigator.canShare({ files: [waSelectedFile] })) {
+    showToast("Media ini tidak bisa dibagikan langsung ke WhatsApp dari browser.");
+    return;
+  }
+
   try {
-    const form=new FormData();
-    form.append("media",waSelectedFile,waSelectedFile.name);
-    const r=await fetch("/api/wa/generate-token",{method:"POST",credentials:"same-origin",body:form});
-    const d=await r.json().catch(()=>({}));
-    if(!r.ok||!d.ok) throw new Error(d.message||"Gagal membuat token.");
-    waToken=d.token;
-    waTokenValue.textContent=waToken;
-    waTokenStatus.textContent="Token siap. Langsung kirim token ini ke group WhatsApp.";
-    waHdResult.hidden=false;
-    waSendTitle.textContent="Token siap";
-    waSendDetail.textContent=`${waToken} • media sudah diterima bot. Kirim token ini ke group WhatsApp.`;
-    setTokenStatus("success","✓ Token dibuat • media sudah masuk ke bot");
-    showToast("Token siap. Kirim ke group WhatsApp.");
-  } catch(e) {
-    waGenerateTokenBtn.disabled=false;
-    waTokenStatus.textContent="Gagal membuat token.";
-    setTokenStatus("error",`✕ ${e.message}`);
-    showToast(e.message);
+    waCreateStatusBtn.disabled = true;
+    waCreateStatusBtn.textContent = "Membuka WhatsApp…";
+    await navigator.share(shareData);
+    waHdResult.hidden = false;
+    waSendTitle.textContent = "WhatsApp dibuka";
+    waSendDetail.textContent = "Di WhatsApp, pilih Status saya untuk melanjutkan.";
+    showToast("WhatsApp dibuka. Pilih Status saya.");
+  } catch (error) {
+    if (error && error.name === "AbortError") {
+      showToast("Bagikan dibatalkan.");
+    } else {
+      showToast(error.message || "Gagal membuka WhatsApp.");
+    }
+  } finally {
+    waCreateStatusBtn.disabled = false;
+    waCreateStatusBtn.innerHTML = 'Buat Status <span>→</span>';
   }
 }
-async function sendWaTokenToBot() {
-  if(!waSelectedFile||!waToken) return showToast("Generate token terlebih dahulu.");
-  waBotBtn.disabled=true; waGenerateTokenBtn.disabled=true; setTokenStatus("checking","Mengirim media ke nomor bot…"); waTokenStatus.textContent="Mengirim media ke bot…";
-  try {
-    const form=new FormData(); form.append("token",waToken); form.append("media",waSelectedFile,waSelectedFile.name);
-    const r=await fetch("/api/wa/token-media",{method:"POST",credentials:"same-origin",body:form}); const d=await r.json().catch(()=>({}));
-    if(!r.ok||d.ok!==true) throw new Error(d.message||"Bot gagal menerima media.");
-    setTokenStatus("success","✓ Media sudah masuk ke nomor bot"); waTokenStatus.textContent="Sekarang kirim token ini ke group WhatsApp."; waSendTitle.textContent="Jadi Bot berhasil"; waSendDetail.textContent=`Kirim ${waToken} ke group WhatsApp.`; showToast("Media berhasil dikirim ke nomor bot.");
-  } catch(e) { waBotBtn.disabled=false; waGenerateTokenBtn.disabled=false; setTokenStatus("error",`✕ ${e.message}`); waTokenStatus.textContent="Gagal mengirim ke bot."; showToast(e.message); }
-}
+
 function resetWaHdTool() {
-  if(waSelectedObjectUrl) URL.revokeObjectURL(waSelectedObjectUrl);
-  waSelectedObjectUrl=null; waSelectedFile=null; waToken="";
-  if(waHdWorkspace) waHdWorkspace.hidden=true; if(waHdInput) waHdInput.value=""; if(waMediaPreview) waMediaPreview.hidden=true; if(waHdResult) waHdResult.hidden=true; if(waPreviewMedia) waPreviewMedia.innerHTML=""; if(waFileInfo) waFileInfo.innerHTML="";
-  if(waGenerateTokenBtn) waGenerateTokenBtn.disabled=true; if(waBotBtn) waBotBtn.disabled=true; if(waTokenValue) waTokenValue.textContent="—"; if(waTokenStatus) waTokenStatus.textContent="Upload media lalu generate token."; if(waMemberStatus){waMemberStatus.hidden=true;waMemberStatus.textContent="";}
+  if (waSelectedObjectUrl) URL.revokeObjectURL(waSelectedObjectUrl);
+  waSelectedObjectUrl = null; waSelectedFile = null;
+  if (waHdWorkspace) waHdWorkspace.hidden = true;
+  if (waHdInput) waHdInput.value = "";
+  if (waMediaPreview) waMediaPreview.hidden = true;
+  if (waHdResult) waHdResult.hidden = true;
+  if (waPreviewMedia) waPreviewMedia.innerHTML = "";
+  if (waFileInfo) waFileInfo.innerHTML = "";
+  if (waCreateStatusBtn) { waCreateStatusBtn.disabled = true; waCreateStatusBtn.textContent = "Buat Status"; }
 }
-function escapeHtml(value) { return String(value).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c])); }
+function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c])); }
+
