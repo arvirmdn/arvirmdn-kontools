@@ -54,3 +54,51 @@ button{cursor:pointer}
 @media(max-width:520px){
   .auth-page{padding:16px}.brand-panel h1{font-size:40px}.brand-panel p{font-size:13px}.mini-stats{gap:20px}.auth-card{border-radius:22px}.auth-head h2{font-size:25px}.hero-card h1{font-size:40px}.content{padding:14px}.topbar{height:70px}
 }
+
+/* Mobile app-style: fit the login screen into one viewport */
+@media (max-width:520px){
+  html,body{height:100%;overflow:hidden}
+  .auth-page{height:100dvh;min-height:0;padding:10px;overflow:hidden;display:block}
+  .auth-shell{height:100%;max-width:none;display:flex;flex-direction:column;justify-content:center;gap:8px}
+  .brand-panel{padding:0;text-align:center;flex:none}
+  .brand-mark{width:42px;height:42px;border-radius:13px;font-size:18px;margin:0 auto 7px}
+  .eyebrow{font-size:9px;letter-spacing:.18em}
+  .brand-panel h1{font-size:30px;line-height:.9;margin:7px 0 10px}
+  .brand-panel p{font-size:11px;line-height:1.4;max-width:330px;margin:0 auto}
+  .mini-stats{gap:28px;margin-top:9px}
+  .mini-stats div{gap:1px}
+  .mini-stats strong{font-size:14px}
+  .mini-stats span{font-size:8px}
+  .auth-card{width:100%;padding:15px;border-radius:20px;flex:none}
+  .auth-head{gap:10px}
+  .auth-head h2{font-size:21px;margin:5px 0 4px}
+  .auth-head p{font-size:11px}
+  .status-dot{width:7px;height:7px;margin-top:4px}
+  .tabs{margin:13px 0 10px;padding:3px;border-radius:12px}
+  .tab{padding:9px;border-radius:9px;font-size:13px}
+  .field{margin:9px 0}
+  .field label{font-size:10px;margin-bottom:5px}
+  .text-btn{font-size:9px}
+  .field input{padding:10px 12px;border-radius:11px;font-size:12px;height:40px}
+  .form-message{min-height:14px;font-size:10px;margin:4px 0}
+  .primary-btn{padding:10px;border-radius:11px;font-size:12px}
+  .arrow{font-size:14px}
+  .terms{font-size:8px;margin:10px 0 0}
+}
+
+@media (max-width:380px){
+  .auth-page{padding:7px}
+  .auth-shell{gap:5px}
+  .brand-mark{width:38px;height:38px;margin-bottom:5px}
+  .brand-panel h1{font-size:27px;margin:5px 0 7px}
+  .brand-panel p{font-size:10px}
+  .mini-stats{margin-top:6px;gap:22px}
+  .auth-card{padding:12px;border-radius:18px}
+  .auth-head h2{font-size:19px}
+  .tabs{margin:10px 0 8px}
+  .tab{padding:8px;font-size:12px}
+  .field{margin:7px 0}
+  .field input{height:37px;padding:8px 10px}
+  .primary-btn{padding:9px}
+  .terms{margin-top:7px}
+}
