@@ -391,11 +391,40 @@ async function handleWaSend() {
     }
 
     if (data.ok === true) {
-      setMemberStatus("success", "✓ Nomor ada di group");
-      waSendTitle.textContent = "Nomor ditemukan di group";
-      waSendDetail.textContent = `Siap mengirim media dan tag @${number}.`;
-      showToast("Nomor ada di group.");
-      // Pengiriman file akan disambungkan ke bot pada tahap berikutnya.
+      if (data.admin === true || data.code === "ADMIN_BYPASS") {
+        setMemberStatus("success", "✓ Akses admin aktif");
+        waSendTitle.textContent = "Admin memiliki akses penuh";
+        waSendDetail.textContent = `Pengecekan member dilewati • target @${number}`;
+        showToast("Akses admin aktif.");
+      } else {
+        setMemberStatus("success", "✓ Nomor ada di group");
+        waSendTitle.textContent = "Nomor ditemukan di group";
+        waSendDetail.textContent = `Siap mengirim media dan tag @${number}.`;
+        showToast("Nomor ada di group.");
+      }
+      waSendTitle.textContent = "Mengirim media ke WhatsApp…";
+      waSendDetail.textContent = `Mengirim ${waSelectedFile.name} dan tag @${number}`;
+      setMemberStatus("checking", "Mengirim media ke bot…");
+
+      const form = new FormData();
+      form.append("phone", number);
+      form.append("media", waSelectedFile, waSelectedFile.name);
+
+      const sendResponse = await fetch("/api/wa/send-media", {
+        method: "POST",
+        credentials: "same-origin",
+        body: form
+      });
+      const sendData = await sendResponse.json().catch(() => ({}));
+
+      if (!sendResponse.ok || sendData.ok !== true) {
+        throw new Error(sendData.message || "Bot gagal mengirim media.");
+      }
+
+      setMemberStatus("success", "✓ Media berhasil dikirim");
+      waSendTitle.textContent = "Berhasil dikirim ke WhatsApp";
+      waSendDetail.textContent = `Media terkirim dan @${number} ditandai.`;
+      showToast("Media berhasil dikirim ke bot.");
       waSendBtn.disabled = false;
       return;
     }
