@@ -115,17 +115,8 @@
 
         <div class="tool-workspace" id="waHdWorkspace" hidden>
           <div class="tool-workspace-head">
-            <div><span class="eyebrow">UPLOAD STATUS WA HD</span><h2>Kirim Media ke Group</h2><p>Media tidak diubah atau di-re-encode oleh website. Bot akan menangani pengiriman dan tag nomor saat integrasi bot sudah dipasang.</p></div>
+            <div><span class="eyebrow">UPLOAD STATUS WA HD</span><h2>Generate Token</h2><p>Upload foto/video, buat token, lalu tekan Jadi Bot. Media akan dikirim ke nomor WhatsApp bot.</p></div>
             <button class="icon-btn workspace-close" id="closeWaHdBtn" type="button" aria-label="Tutup tool">×</button>
-          </div>
-
-          <div class="wa-target-card">
-            <div class="wa-field-label"><span>☎</span> Nomor WhatsApp yang akan di-tag</div>
-            <div class="wa-phone-row">
-              <span class="wa-prefix">+62</span>
-              <input id="waTargetInput" type="tel" inputmode="numeric" autocomplete="tel" placeholder="8xxxxxxxxxx" maxlength="15" aria-label="Nomor WhatsApp">
-            </div>
-            <small>Contoh: 81234567890. Jangan masukkan spasi atau tanda +.</small>
           </div>
 
           <label class="upload-dropzone" id="waDropzone" for="waHdInput">
@@ -145,14 +136,20 @@
 
           <div class="wa-quality-note">
             <strong>✓ Kualitas asli dipertahankan</strong>
-            <span>Website tidak me-render ulang atau mengompres file. Setelah bot dibuat, file asli akan dikirim ke group dan nomor akan di-tag.</span>
+            <span>File tidak di-render ulang atau dikompres oleh website.</span>
+          </div>
+
+          <div class="token-panel">
+            <div class="token-panel-copy"><span>TOKEN</span><strong id="waTokenValue">—</strong><small id="waTokenStatus">Upload media lalu generate token.</small></div>
+            <div class="token-actions">
+              <button class="secondary-btn" id="waGenerateTokenBtn" type="button" disabled>Generate Token</button>
+              <button class="primary-btn" id="waBotBtn" type="button" disabled>Jadi Bot <span>→</span></button>
+            </div>
           </div>
 
           <div class="wa-member-status" id="waMemberStatus" hidden></div>
-
           <div class="tool-result wa-send-result" id="waHdResult" hidden>
-            <div class="wa-result-copy"><strong id="waSendTitle">Media siap</strong><small id="waSendDetail">Masukkan nomor dan pilih media.</small></div>
-            <button class="primary-btn" id="waSendBtn" type="button" disabled>Kirim ke Bot <span>→</span></button>
+            <div class="wa-result-copy"><strong id="waSendTitle">Token siap</strong><small id="waSendDetail">Kirim token ke group WhatsApp.</small></div>
           </div>
         </div>
       </section>
