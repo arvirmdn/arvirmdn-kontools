@@ -1,5 +1,3 @@
-require("dotenv").config();
-
 const express = require("express");
 const session = require("express-session");
 const bcrypt = require("bcryptjs");
@@ -40,6 +38,10 @@ app.use(session({
 }));
 
 app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ ok: true, status: "healthy" });
+});
 
 function cleanEmail(value) {
   return String(value || "").trim().toLowerCase();
