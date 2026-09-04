@@ -97,7 +97,62 @@
       </section>
 
       <section id="toolsPage" class="page">
-        <div class="placeholder-card"><span class="eyebrow">TOOLS</span><h1>Tools segera hadir.</h1><p>Area ini sudah disiapkan untuk tools yang akan kamu tambahkan.</p></div>
+        <div class="page-head-row">
+          <div><span class="eyebrow">TOOLS</span><h1>Tools</h1><p>Gunakan tools praktis yang tersedia di arvirmdn kontools v0.1.</p></div>
+        </div>
+
+        <div class="tools-grid">
+          <article class="tool-card tool-card-featured">
+            <div class="tool-card-icon">↗</div>
+            <div class="tool-card-copy">
+              <span class="tool-badge">MEDIA</span>
+              <h2>Upload Status WA HD</h2>
+              <p>Masukkan nomor WhatsApp, pilih foto atau video, lalu siapkan media untuk dikirim bot ke group dan tag nomor tersebut.</p>
+            </div>
+            <button class="primary-btn tool-open-btn" id="openWaHdBtn" type="button">Buka Tool <span>→</span></button>
+          </article>
+        </div>
+
+        <div class="tool-workspace" id="waHdWorkspace" hidden>
+          <div class="tool-workspace-head">
+            <div><span class="eyebrow">UPLOAD STATUS WA HD</span><h2>Kirim Media ke Group</h2><p>Media tidak diubah atau di-re-encode oleh website. Bot akan menangani pengiriman dan tag nomor saat integrasi bot sudah dipasang.</p></div>
+            <button class="icon-btn workspace-close" id="closeWaHdBtn" type="button" aria-label="Tutup tool">×</button>
+          </div>
+
+          <div class="wa-target-card">
+            <div class="wa-field-label"><span>☎</span> Nomor WhatsApp yang akan di-tag</div>
+            <div class="wa-phone-row">
+              <span class="wa-prefix">+62</span>
+              <input id="waTargetInput" type="tel" inputmode="numeric" autocomplete="tel" placeholder="8xxxxxxxxxx" maxlength="15" aria-label="Nomor WhatsApp">
+            </div>
+            <small>Contoh: 81234567890. Jangan masukkan spasi atau tanda +.</small>
+          </div>
+
+          <label class="upload-dropzone" id="waDropzone" for="waHdInput">
+            <span class="upload-icon">↑</span>
+            <strong>Pilih foto atau video</strong>
+            <small>JPG, PNG, WebP, MP4, MOV, WebM • maksimal 200 MB</small>
+            <input id="waHdInput" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" hidden>
+          </label>
+
+          <div class="wa-media-preview" id="waMediaPreview" hidden>
+            <div class="preview-box">
+              <small>PREVIEW MEDIA ASLI</small>
+              <div id="waPreviewMedia" class="wa-preview-media"></div>
+            </div>
+            <div class="wa-file-info" id="waFileInfo"></div>
+          </div>
+
+          <div class="wa-quality-note">
+            <strong>✓ Tidak dikompres ulang oleh website</strong>
+            <span>File asli dipakai apa adanya. WhatsApp tetap dapat melakukan kompresi ketika media diunggah ke Status.</span>
+          </div>
+
+          <div class="tool-result wa-send-result" id="waHdResult" hidden>
+            <div class="wa-result-copy"><strong id="waSendTitle">Media siap</strong><small id="waSendDetail">Masukkan nomor dan pilih media.</small></div>
+            <button class="primary-btn" id="waSendBtn" type="button" disabled>Kirim ke Bot <span>→</span></button>
+          </div>
+        </div>
       </section>
 
       <section id="profilePage" class="page">
