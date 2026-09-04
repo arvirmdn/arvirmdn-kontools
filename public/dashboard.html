@@ -42,7 +42,7 @@
       <button class="icon-btn menu-toggle" id="openSidebar" type="button" aria-label="Buka sidebar">☰</button>
       <div class="crumb"><span>Dashboard</span><i>/</i><b id="pageName">Overview</b></div>
       <div class="top-actions">
-        <button class="icon-btn" id="notifyBtn" type="button" aria-label="Notifikasi">♢</button>
+        <button class="icon-btn" id="notifyBtn" type="button" aria-label="Notifikasi" title="Notifikasi">🔔</button>
         <div class="top-avatar" id="topAvatar">A</div>
       </div>
     </header>
@@ -68,13 +68,23 @@
           <article class="stat-card"><span class="stat-icon">●</span><div><strong>Online</strong><small>Status sistem</small></div></article>
         </div>
 
-        <div class="section-head overview-section-head quick-head">
-          <div><span class="eyebrow">QUICK ACCESS</span><h2>Akses cepat</h2></div>
+        <div class="section-head overview-section-head activity-head">
+          <div><span class="eyebrow">ARVIR SYSTEM</span><h2>Semua sistem siap digunakan</h2></div>
         </div>
-        <div class="empty-grid quick-grid">
-          <button class="empty-card quick-card" type="button" data-page-target="tools"><span>01</span><h3>Tools</h3><p>Kumpulan tools yang akan kamu gunakan.</p></button>
-          <button class="empty-card quick-card" type="button" data-page-target="profile"><span>02</span><h3>Profil</h3><p>Lihat informasi akun kamu.</p></button>
-          <button class="empty-card quick-card" type="button" data-page-target="settings"><span>03</span><h3>Pengaturan</h3><p>Atur preferensi dashboard.</p></button>
+        <div class="overview-animation-card">
+          <div class="animation-copy">
+            <span class="live-pill"><i></i> LIVE SYSTEM</span>
+            <h3>Selamat datang di ARVIR</h3>
+            <p>Platform kamu sedang berjalan normal. Nikmati dashboard yang cepat, rapi, dan siap digunakan.</p>
+            <div class="live-metrics"><span><b>99.9%</b> Uptime</span><span><b>Online</b> Server</span><span><b>Ready</b> Account</span></div>
+          </div>
+          <div class="system-animation" aria-hidden="true">
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="orbit orbit-three"></div>
+            <div class="core">A</div>
+            <span class="particle p1"></span><span class="particle p2"></span><span class="particle p3"></span><span class="particle p4"></span>
+          </div>
         </div>
       </section>
 
@@ -84,12 +94,33 @@
 
       <section id="profilePage" class="page">
         <div class="profile-page-card">
-          <div class="profile-page-head"><div class="avatar profile-large" id="profileAvatar">A</div><div><span class="eyebrow">MY PROFILE</span><h1 id="profileName">User</h1><p id="profileEmail">email</p></div></div>
+          <div class="profile-page-head">
+            <div class="avatar profile-large profile-photo" id="profileAvatar">A</div>
+            <div class="profile-head-copy"><span class="eyebrow">MY PROFILE</span><h1 id="profileName">User</h1><p id="profileEmail">email</p></div>
+          </div>
+
+          <div class="profile-actions">
+            <label class="secondary-btn" for="photoInput">📷 Ubah Foto Profil</label>
+            <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+          </div>
+
           <div class="profile-info-grid">
             <div class="profile-info"><small>Nama</small><strong id="profileNameValue">User</strong></div>
             <div class="profile-info"><small>Email</small><strong id="profileEmailValue">email</strong></div>
             <div class="profile-info"><small>Status</small><strong class="accent-text">Aktif</strong></div>
             <div class="profile-info"><small>Akses</small><strong>Premium</strong></div>
+          </div>
+
+          <div class="password-card">
+            <div class="password-head"><div><span class="eyebrow">SECURITY</span><h2>Ganti Sandi</h2></div></div>
+            <form id="passwordForm">
+              <div class="password-grid">
+                <div class="field"><label for="currentPassword">Sandi saat ini</label><input id="currentPassword" type="password" autocomplete="current-password" required></div>
+                <div class="field"><label for="newPassword">Sandi baru</label><input id="newPassword" type="password" autocomplete="new-password" minlength="6" required></div>
+              </div>
+              <div class="form-message" id="passwordMessage"></div>
+              <button class="primary-btn password-btn" type="submit">Simpan Sandi <span class="arrow">→</span></button>
+            </form>
           </div>
         </div>
       </section>
