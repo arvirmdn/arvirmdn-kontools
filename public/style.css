@@ -102,3 +102,49 @@ button{cursor:pointer}
   .primary-btn{padding:9px}
   .terms{margin-top:7px}
 }
+
+
+/* Mobile dashboard app-style: keep Overview compact inside one viewport */
+@media (max-width: 520px){
+  .dashboard-page{height:100dvh;min-height:0;overflow:hidden}
+  .main-area{height:100dvh;min-height:0;overflow:hidden}
+  .topbar{height:58px;min-height:58px;padding:0 12px;gap:10px}
+  .topbar .icon-btn{width:36px;height:36px;border-radius:10px}
+  .crumb{font-size:10px}
+  .crumb i{margin:0 5px}
+  .top-actions{gap:7px}
+  .top-avatar{width:34px;height:34px;border-radius:10px;font-size:11px}
+  .content{height:calc(100dvh - 58px);min-height:0;overflow:hidden;padding:10px}
+  .page.active{height:100%;overflow:hidden}
+
+  .hero-card{min-height:0;height:154px;padding:18px;border-radius:20px;display:flex;align-items:center}
+  .hero-card h1{font-size:31px;margin:6px 0 5px;line-height:1}
+  .hero-card p{font-size:10px;line-height:1.45;margin:0;max-width:285px}
+  .hero-orb{display:grid;width:76px;height:76px;font-size:28px}
+  .section-head{margin:13px 0 8px}
+  .section-head h2{font-size:17px;margin:4px 0}
+  .empty-grid{grid-template-columns:repeat(3,1fr);gap:7px}
+  .empty-card{min-height:108px;height:108px;padding:11px;border-radius:14px;overflow:hidden}
+  .empty-card span{font-size:8px}
+  .empty-card h3{font-size:11px;margin:12px 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .empty-card p{font-size:8px;line-height:1.35;margin:0}
+
+  .placeholder-card{min-height:0;height:calc(100dvh - 90px);border-radius:20px;padding:20px}
+  .placeholder-card h1{font-size:27px}
+  .placeholder-card p{font-size:11px}
+}
+
+@media (max-width: 380px){
+  .topbar{height:54px;min-height:54px}
+  .content{height:calc(100dvh - 54px);padding:8px}
+  .hero-card{height:142px;padding:15px}
+  .hero-card h1{font-size:28px}
+  .hero-card p{font-size:9px;max-width:235px}
+  .hero-orb{width:64px;height:64px;font-size:24px}
+  .section-head{margin:10px 0 6px}
+  .section-head h2{font-size:15px}
+  .empty-grid{gap:5px}
+  .empty-card{height:98px;min-height:98px;padding:9px}
+  .empty-card h3{font-size:10px;margin-top:10px}
+  .empty-card p{font-size:7px}
+}
