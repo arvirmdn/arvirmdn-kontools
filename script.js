@@ -333,6 +333,8 @@ function doLogout() {
     });
     document.querySelectorAll('.input').forEach(i => { i.value = ''; i.classList.remove('error', 'success'); });
     document.getElementById('apkResult').classList.remove('show');
+    document.getElementById('pwStrength').removeAttribute('data-level');
+    document.getElementById('pwStrengthLabel').textContent = 'Minimal 4 karakter';
     const avatar = document.getElementById('profilAvatar');
     avatar.style.backgroundImage = '';
     waFiles = [];
@@ -513,3 +515,41 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('input', () => input.classList.remove('error'));
   });
 });
+
+// ===== NOTIFICATION DROPDOWN =====
+function toggleNotif() {
+  document.getElementById('notifDropdown').classList.toggle('open');
+}
+document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('notifDropdown');
+  if (!dropdown || !dropdown.classList.contains('open')) return;
+  if (!e.target.closest('.icon-btn') && !e.target.closest('.notif-dropdown')) {
+    dropdown.classList.remove('open');
+  }
+});
+
+// ===== MOBILE SEARCH TOGGLE =====
+function toggleMobileSearch() {
+  const wrap = document.getElementById('topbarSearchWrap');
+  wrap.classList.toggle('open');
+  if (wrap.classList.contains('open')) document.getElementById('topbarSearch').focus();
+}
+
+// ===== PASSWORD STRENGTH =====
+function updatePwStrength(value) {
+  const box = document.getElementById('pwStrength');
+  const label = document.getElementById('pwStrengthLabel');
+  if (!value) {
+    box.removeAttribute('data-level');
+    label.textContent = 'Minimal 4 karakter';
+    return;
+  }
+  let score = 0;
+  if (value.length >= 4) score++;
+  if (value.length >= 8 && /[0-9]/.test(value) && /[a-zA-Z]/.test(value)) score++;
+  if (value.length >= 10 && /[^a-zA-Z0-9]/.test(value)) score++;
+  const level = Math.max(1, score);
+  box.setAttribute('data-level', level);
+  const labels = { 1: 'Lemah', 2: 'Sedang', 3: 'Kuat' };
+  label.textContent = labels[level];
+}

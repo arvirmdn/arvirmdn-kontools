@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>arvirmdn kontools v0.1</title>
   <meta name="description" content="arvirmdn kontools — kumpulan tools praktis: link to APK, status WA HD, dan lainnya.">
   <meta property="og:title" content="arvirmdn kontools v0.1">
@@ -58,7 +58,15 @@
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            <input type="password" class="input" id="regPass" placeholder="Buat kata sandi">
+            <input type="password" class="input" id="regPass" placeholder="Buat kata sandi" oninput="updatePwStrength(this.value)">
+          </div>
+          <div class="pw-strength" id="pwStrength">
+            <div class="pw-strength-bars">
+              <div class="pw-strength-bar"></div>
+              <div class="pw-strength-bar"></div>
+              <div class="pw-strength-bar"></div>
+            </div>
+            <div class="pw-strength-label" id="pwStrengthLabel">Minimal 4 karakter</div>
           </div>
         </div>
         <div class="field">
@@ -228,19 +236,37 @@
           <span class="page-title" id="pageTitle">Profil</span>
         </div>
         <div class="topbar-right">
-          <div class="topbar-search">
+          <button class="icon-btn search-toggle-btn" title="Cari" onclick="toggleMobileSearch()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </button>
+          <div class="topbar-search" id="topbarSearchWrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"/>
               <line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
             <input type="text" placeholder="Cari tools..." id="topbarSearch">
           </div>
-          <button class="icon-btn" title="Notifikasi">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-          </button>
+          <div style="position:relative;">
+            <button class="icon-btn" title="Notifikasi" onclick="toggleNotif()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              </svg>
+            </button>
+            <div class="notif-dropdown" id="notifDropdown">
+              <div class="notif-dropdown-head">Notifikasi</div>
+              <div class="notif-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                Belum ada notifikasi
+              </div>
+            </div>
+          </div>
           <div class="user-pill">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
