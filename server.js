@@ -2,7 +2,6 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const rateLimit = require('express-rate-limit');
@@ -39,28 +38,7 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false, // untuk compatibility
 }));
 
-// ===== CORS TERBATAS =====
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',') 
-  : (NODE_ENV === 'production' ? [] : ['http://localhost:8080', 'http://localhost:3000']);
-
-app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.length === 0) {
-      // Production tanpa ALLOWED_ORIGINS = block semua
-      return callback(new Error('CORS: Origin not allowed'));
-    }
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('CORS: Origin not allowed'));
-    }
-    return callback(null, true);
-  },
-  credentials: true,
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+// CORS tidak diperlukan untuk frontend same-origin di Railway.
 
 app.use(express.json({ limit: '10kb' })); // Batasi body size
 

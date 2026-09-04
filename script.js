@@ -448,7 +448,7 @@ function generateApk(btn) {
     btn.disabled = false;
     urlInput.classList.add('success');
     const domain = url.replace(/^https?:\/\//, '').split('/')[0];
-    document.getElementById('apkFileName').textContent = escapeHtml(domain) + '.apk';
+    document.getElementById('apkFileName').textContent = domain + '.apk';
     document.getElementById('apkResult').classList.add('show');
     showToast('APK berhasil dibuat.', 'success');
   }, 1500);
