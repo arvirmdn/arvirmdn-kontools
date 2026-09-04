@@ -75,3 +75,7 @@ Railway → **Settings / Networking → Generate Domain**. Setelah deployment be
 ## Penyimpanan akun
 
 Versi ini menyimpan akun di `data/users.json`. Ini cocok untuk testing/prototype. Untuk production serius, pindahkan penyimpanan user ke PostgreSQL Railway karena filesystem container dapat diganti saat deployment tertentu.
+
+
+## Admin
+Email admin bawaan: `telokaspeanget999@gmail.com`. Akun dengan email ini otomatis mendapat akses admin dan bypass pengecekan member group. Jika `ADMIN_EMAIL` di Railway diisi, nilainya dapat menggantikan email bawaan tersebut.
