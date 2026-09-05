@@ -3,7 +3,7 @@
 
   var audio = new Audio("/audio/backsound.mp3");
   audio.loop = true;
-  audio.volume = 0.22; // pelan ala backsound menu game
+  audio.volume = 0.45; // lebih kencang dari sebelumnya
   audio.preload = "auto";
   audio.muted = localStorage.getItem(STORAGE_KEY) === "1";
 
@@ -29,6 +29,15 @@
   document.addEventListener("click", firstInteraction, { once: true });
   document.addEventListener("touchstart", firstInteraction, { once: true });
   document.addEventListener("keydown", firstInteraction, { once: true });
+
+  // Mati otomatis saat tab/app ditinggalkan, nyala lagi saat dibuka lagi
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) {
+      audio.pause();
+    } else if (!audio.muted) {
+      tryPlay();
+    }
+  });
 
   function updateIcon(btn) {
     btn.innerHTML = audio.muted
