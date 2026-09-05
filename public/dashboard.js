@@ -241,10 +241,24 @@ async function requestPairing(){
   try{
     const r=await fetch("/api/wa/pair",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({phone})});
     const d=await r.json().catch(()=>({}));
-    if(d.code==="ALREADY_PAIRED"){waPaired=true;setMemberStatus("success","✓ WhatsApp sudah terhubung");showToast("WhatsApp sudah terhubung.");updateWaHdState();return;}
+    if(d.code==="ALREADY_PAIRED"){
+      waPaired=true;
+      waPairingCode="";
+      if(waPairResult)waPairResult.hidden=true;
+      if(waPairDetail)waPairDetail.textContent="";
+      setMemberStatus("success",`✓ WhatsApp sudah terhubung${d.pairedNumber?` • ${String(d.pairedNumber).split(":")[0]}`:""}`);
+      waPairBtn.textContent="Bot Terhubung ✓";
+      showToast("WhatsApp sudah terhubung. Tidak perlu pairing lagi.");
+      updateWaHdState();
+      return;
+    }
     if(!r.ok)throw new Error(d.message||"Gagal mendapatkan kode pairing.");
-    waPairingCode=d.pairingCode||"";waPairDetail.textContent=`Kode: ${waPairingCode} • WhatsApp → Perangkat tertaut → Tautkan perangkat.`;waPairResult.hidden=false;
-    setMemberStatus("success","✓ Kode pairing siap");showToast("Kode pairing berhasil dibuat.");
+    if(!d.pairingCode)throw new Error("Server tidak mengirim kode pairing.");
+    waPairingCode=d.pairingCode;
+    waPairDetail.textContent=`Kode: ${waPairingCode} • WhatsApp → Perangkat tertaut → Tautkan perangkat.`;
+    waPairResult.hidden=false;
+    setMemberStatus("success","✓ Kode pairing siap");
+    showToast("Kode pairing berhasil dibuat.");
     waPairBtn.textContent="Kode Dibuat ✓";
   }catch(e){setMemberStatus("error",`✕ ${e.message}`);showToast(e.message||"Gagal pairing.");}
   finally{waPairBtn.disabled=false;}
@@ -257,7 +271,7 @@ async function handleSelfSend(){
   if(!waPaired){showToast("Tautkan perangkat dulu.");return;}
   waSendBtn.disabled=true;setMemberStatus("checking","Mengirim media ke WhatsApp sendiri…");waSendTitle.textContent="Mengirim media…";
   try{
-    const form=new FormData();form.append("media",waSelectedFile,waSelectedFile.name);
+    const form=new FormData();form.append("media",waSelectedFile,waSelectedFile.name);form.append("phone",phone);
     const r=await fetch("/api/wa/send-self",{method:"POST",credentials:"same-origin",body:form});
     const d=await r.json().catch(()=>({}));
     if(!r.ok||d.ok!==true)throw new Error(d.message||"Gagal mengirim media.");
