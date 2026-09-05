@@ -3,6 +3,7 @@ const session = require("express-session");
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const path = require("path");
+const multer = require("multer");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,17 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 app.use(express.json({ limit: "4mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+const uploadDir = path.join(DATA_DIR, "uploads");
+fs.mkdirSync(uploadDir, { recursive: true });
+const waUpload = multer({
+  dest: uploadDir,
+  limits: { fileSize: 200 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = /^(image\/(jpeg|png|webp)|video\/(mp4|quicktime|webm))$/.test(file.mimetype);
+    cb(allowed ? null : new Error("Format media tidak didukung."), allowed);
+  }
+});
 
 app.use(session({
   secret: process.env.SESSION_SECRET || "arvirmdn-premium-change-this-secret",
@@ -157,19 +169,53 @@ app.post("/api/profile/password", requireAuth, async (req, res) => {
   res.json({ ok: true, message: "Sandi berhasil diganti." });
 });
 
-app.post("/api/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.clearCookie("connect.sid");
-    res.json({ ok: true });
-  });
+app.post("/api/wa/pair", requireAuth, async (req, res) => {
+  const phone = String(req.body.phone || "").replace(/\D/g, "");
+  if (!/^628\d{7,13}$/.test(phone)) {
+    return res.status(400).json({ ok:false, code:"INVALID_PHONE", message:"Nomor WhatsApp tidak valid." });
+  }
+  const botApiUrl = String(process.env.BOT_API_URL || "").replace(/\/$/, "");
+  if (!botApiUrl) return res.status(503).json({ ok:false, code:"BOT_NOT_CONFIGURED", message:"BOT_API_URL belum diatur." });
+  try {
+    const r = await fetch(`${botApiUrl}/pair`, {
+      method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ phone })
+    });
+    const data = await r.json().catch(() => ({}));
+    return res.status(r.status).json(data);
+  } catch (e) {
+    return res.status(503).json({ ok:false, code:"BOT_UNREACHABLE", message:"Bot tidak bisa dihubungi." });
+  }
 });
 
-app.get("/dashboard", requireAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
-});
-
-app.get("*splat", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+app.post("/api/wa/send-self", requireAuth, waUpload.single("media"), async (req, res) => {
+  const cleanup = () => { if (req.file?.path) fs.promises.unlink(req.file.path).catch(() => {}); };
+  try {
+    if (!req.file) return res.status(400).json({ ok:false, code:"MEDIA_REQUIRED", message:"Media belum dipilih." });
+    const botApiUrl = String(process.env.BOT_API_URL || "").replace(/\/$/, "");
+    if (!botApiUrl) { cleanup(); return res.status(503).json({ ok:false, code:"BOT_NOT_CONFIGURED", message:"BOT_API_URL belum diatur." }); }
+    const boundary = `----ARVIRMDN${Date.now().toString(16)}`;
+    const safeName = String(req.file.originalname || "media").replace(/["\\\r\n]/g, "_");
+    const head = Buffer.from(
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="media"; filename="${safeName}"\r\n` +
+      `Content-Type: ${req.file.mimetype}\r\n\r\n`
+    );
+    const fileBuffer = await fs.promises.readFile(req.file.path);
+    const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
+    const body = Buffer.concat([head, fileBuffer, tail]);
+    const r = await fetch(`${botApiUrl}/send-self`, {
+      method:"POST",
+      headers:{"Content-Type":`multipart/form-data; boundary=${boundary}`,"Content-Length":String(body.length)},
+      body
+    });
+    const data = await r.json().catch(() => ({}));
+    cleanup();
+    return res.status(r.status).json(data);
+  } catch (e) {
+    cleanup();
+    console.error("WA SELF SEND ERROR:", e);
+    return res.status(500).json({ ok:false, code:"SEND_SELF_FAILED", message:e.message || "Gagal mengirim media." });
+  }
 });
 
 app.listen(PORT, "0.0.0.0", () => {

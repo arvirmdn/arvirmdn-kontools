@@ -2,7 +2,7 @@
   "name": "arvirmdn-premium-web",
   "version": "1.0.0",
   "private": true,
-  "description": "Premium login/register dashboard with direct WhatsApp Status sharing",
+  "description": "Premium login/register dashboard with collapsible sidebar",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
