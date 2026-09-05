@@ -107,7 +107,7 @@
             <div class="tool-card-copy">
               <span class="tool-badge">MEDIA</span>
               <h2>Upload Status WA HD</h2>
-              <p>Masukkan nomor WhatsApp untuk mendapatkan kode pairing, lalu pilih foto atau video untuk dikirim ke chat WhatsApp sendiri.</p>
+              <p>Pilih foto atau video, lalu bagikan langsung lewat menu berbagi Android dan pilih WhatsApp atau aplikasi tujuan lainnya.</p>
             </div>
             <button class="primary-btn tool-open-btn" id="openWaHdBtn" type="button">Buka <span>→</span></button>
           </article>
@@ -115,20 +115,14 @@
 
         <div class="tool-workspace" id="waHdWorkspace" hidden>
           <div class="tool-workspace-head">
-            <div><span class="eyebrow">UPLOAD STATUS WA HD</span><h2>Jadi Bot</h2><p>Masukkan nomor WhatsApp, dapatkan kode pairing, tautkan perangkat, lalu media akan dikirim ke chat WhatsApp sendiri.</p></div>
+            <div><span class="eyebrow">UPLOAD STATUS WA HD</span><h2>Bagikan Media</h2><p>Pilih foto atau video, kemudian tekan Bagikan. Pilih WhatsApp sendiri dari menu berbagi Android.</p></div>
             <button class="icon-btn workspace-close" id="closeWaHdBtn" type="button" aria-label="Tutup tool">×</button>
           </div>
 
           <div class="wa-target-card">
-            <div class="wa-field-label"><span>☎</span> Nomor WhatsApp untuk pairing</div>
-            <div class="wa-phone-row">
-              <span class="wa-prefix">+62</span>
-              <input id="waTargetInput" type="tel" inputmode="numeric" autocomplete="tel" placeholder="8xxxxxxxxxx" maxlength="15" aria-label="Nomor WhatsApp">
-            </div>
-            <small>Contoh: 81234567890. Jangan masukkan spasi atau tanda +.</small>
+            <div class="wa-field-label"><span>↗</span> Bagikan ke aplikasi pilihanmu</div>
+            <small>Tidak perlu pairing atau memasukkan nomor. Setelah memilih media, Android akan menampilkan aplikasi yang bisa menerima file, termasuk WhatsApp.</small>
           </div>
-
-          <button class="primary-btn" id="waPairBtn" type="button">Jadi Bot <span>→</span></button>
 
           <label class="upload-dropzone" id="waDropzone" for="waHdInput">
             <span class="upload-icon">↑</span>
@@ -146,20 +140,15 @@
           </div>
 
           <div class="wa-quality-note">
-            <strong>✓ Kualitas asli dipertahankan</strong>
-            <span>Website tidak me-render ulang atau mengompres file. Setelah perangkat tertaut, file asli dikirim ke chat WhatsApp nomor sendiri.</span>
+            <strong>✓ File asli dipertahankan</strong>
+            <span>Website tidak me-render ulang atau mengompres file. File dibagikan langsung ke aplikasi pilihanmu melalui menu berbagi Android.</span>
           </div>
 
           <div class="wa-member-status" id="waMemberStatus" hidden></div>
 
-          <div class="tool-result wa-send-result" id="waPairResult" hidden>
-            <div class="wa-result-copy"><strong>Kode Pairing</strong><small id="waPairDetail">Masukkan kode ini di WhatsApp → Perangkat tertaut → Tautkan perangkat.</small></div>
-            <button class="secondary-btn" id="waCopyPairBtn" type="button">Salin Kode</button>
-          </div>
-
           <div class="tool-result wa-send-result" id="waHdResult" hidden>
-            <div class="wa-result-copy"><strong id="waSendTitle">Siap</strong><small id="waSendDetail">Pairing dulu, lalu pilih media.</small></div>
-            <button class="primary-btn" id="waSendBtn" type="button" disabled>Jadi Bot <span>→</span></button>
+            <div class="wa-result-copy"><strong id="waSendTitle">Siap dibagikan</strong><small id="waSendDetail">Pilih foto atau video untuk mulai.</small></div>
+            <button class="primary-btn" id="waSendBtn" type="button" disabled>Bagikan <span>↗</span></button>
           </div>
         </div>
       </section>

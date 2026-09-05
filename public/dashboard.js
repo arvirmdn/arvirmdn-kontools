@@ -160,13 +160,12 @@ fetch("/api/me", { credentials: "same-origin" })
   })
   .catch(() => window.location.assign("/"));
 
-// Upload Status WA HD — pairing + kirim ke nomor WhatsApp sendiri.
+// Upload Status WA HD — bagikan file langsung melalui Android Share Sheet.
 const waHdInput = document.getElementById("waHdInput");
 const waHdWorkspace = document.getElementById("waHdWorkspace");
 const openWaHdBtn = document.getElementById("openWaHdBtn");
 const closeWaHdBtn = document.getElementById("closeWaHdBtn");
 const waDropzone = document.getElementById("waDropzone");
-const waTargetInput = document.getElementById("waTargetInput");
 const waMediaPreview = document.getElementById("waMediaPreview");
 const waPreviewMedia = document.getElementById("waPreviewMedia");
 const waFileInfo = document.getElementById("waFileInfo");
@@ -175,32 +174,21 @@ const waSendTitle = document.getElementById("waSendTitle");
 const waSendDetail = document.getElementById("waSendDetail");
 const waSendBtn = document.getElementById("waSendBtn");
 const waMemberStatus = document.getElementById("waMemberStatus");
-const waPairBtn = document.getElementById("waPairBtn");
-const waPairResult = document.getElementById("waPairResult");
-const waPairDetail = document.getElementById("waPairDetail");
-const waCopyPairBtn = document.getElementById("waCopyPairBtn");
 let waSelectedFile = null;
 let waSelectedObjectUrl = null;
-let waPairingCode = "";
-let waPaired = false;
 
 function openWaHdTool(){ if(!waHdWorkspace)return; waHdWorkspace.hidden=false; waHdWorkspace.scrollIntoView({behavior:"smooth",block:"start"}); }
 function closeWaHdTool(){ resetWaHdTool(); }
 if(openWaHdBtn)openWaHdBtn.addEventListener("click",openWaHdTool);
 if(closeWaHdBtn)closeWaHdBtn.addEventListener("click",closeWaHdTool);
-
 if(waHdInput) waHdInput.addEventListener("change",()=>processWaHdFile(waHdInput.files?.[0]));
-if(waTargetInput) waTargetInput.addEventListener("input",()=>{waPaired=false; waPairingCode=""; clearMemberStatus(); updateWaHdState();});
 if(waDropzone){
   ["dragover","dragenter"].forEach(t=>waDropzone.addEventListener(t,e=>{e.preventDefault();waDropzone.classList.add("dragging");}));
   ["dragleave","drop"].forEach(t=>waDropzone.addEventListener(t,e=>{e.preventDefault();waDropzone.classList.remove("dragging");}));
   waDropzone.addEventListener("drop",e=>{const f=e.dataTransfer.files?.[0];if(f)processWaHdFile(f);});
 }
-if(waPairBtn) waPairBtn.addEventListener("click", requestPairing);
-if(waSendBtn) waSendBtn.addEventListener("click", handleSelfSend);
-if(waCopyPairBtn) waCopyPairBtn.addEventListener("click", async()=>{if(!waPairingCode)return;try{await navigator.clipboard.writeText(waPairingCode);showToast("Kode pairing disalin.");}catch{showToast("Salin kode secara manual.");}});
+if(waSendBtn) waSendBtn.addEventListener("click", handleNativeShare);
 
-function normalizeWaNumber(v){const d=String(v||"").replace(/\D/g,"");if(d.startsWith("62"))return d;if(d.startsWith("0"))return `62${d.slice(1)}`;if(d.startsWith("8"))return `62${d}`;return d;}
 function isSupportedWaMedia(f){return !!f&&/^(image\/(jpeg|png|webp)|video\/(mp4|quicktime|webm))$/.test(f.type);}
 function formatBytes(b){if(!Number.isFinite(b))return "-";if(b<1024)return `${b} B`;if(b<1048576)return `${(b/1024).toFixed(1)} KB`;if(b<1073741824)return `${(b/1048576).toFixed(2)} MB`;return `${(b/1073741824).toFixed(2)} GB`;}
 function formatDuration(s){if(!Number.isFinite(s))return "-";const t=Math.max(0,Math.round(s));return `${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}`;}
@@ -221,63 +209,47 @@ function processWaHdFile(file){
     waPreviewMedia.appendChild(img);
   }
   waFileInfo.innerHTML=`<div><span>Nama</span><strong>${escapeHtml(file.name)}</strong></div><div><span>Ukuran</span><strong>${formatBytes(file.size)}</strong></div>`;
-  updateWaHdState();
-}
-function updateWaHdState(){
-  const number=normalizeWaNumber(waTargetInput?.value);const valid=/^628\d{7,13}$/.test(number);
-  if(waSendBtn)waSendBtn.disabled=!(valid&&waSelectedFile&&waPaired);
-  if(!waSelectedFile){waSendTitle.textContent="Siap";waSendDetail.textContent="Pairing dulu, lalu pilih media.";return;}
-  if(!valid){waSendTitle.textContent="Nomor belum valid";waSendDetail.textContent="Masukkan nomor WhatsApp Indonesia.";return;}
-  if(!waPaired){waSendTitle.textContent="Pairing belum selesai";waSendDetail.textContent="Tekan Jadi Bot dan tautkan perangkat di WhatsApp.";return;}
-  waSendTitle.textContent="Siap dikirim";waSendDetail.textContent=`${waSelectedFile.name} → chat WhatsApp sendiri`;
+  waSendBtn.disabled=false;
+  waSendTitle.textContent="Siap dibagikan";
+  waSendDetail.textContent=`${file.name} • tekan Bagikan lalu pilih WhatsApp`;
+  setMemberStatus("success","✓ Media siap dibagikan");
 }
 function setMemberStatus(type,text){if(!waMemberStatus)return;waMemberStatus.hidden=false;waMemberStatus.className=`wa-member-status ${type}`;waMemberStatus.textContent=text;}
 function clearMemberStatus(){if(!waMemberStatus)return;waMemberStatus.hidden=true;waMemberStatus.textContent="";waMemberStatus.className="wa-member-status";}
 
-async function requestPairing(){
-  const phone=normalizeWaNumber(waTargetInput?.value);
-  if(!/^628\d{7,13}$/.test(phone)){showToast("Masukkan nomor WhatsApp terlebih dahulu.");return;}
-  waPairBtn.disabled=true;setMemberStatus("checking","Meminta kode pairing…");
-  try{
-    const r=await fetch("/api/wa/pair",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"same-origin",body:JSON.stringify({phone})});
-    const d=await r.json().catch(()=>({}));
-    if(d.code==="ALREADY_PAIRED"){
-      waPaired=true;
-      waPairingCode="";
-      if(waPairResult)waPairResult.hidden=true;
-      if(waPairDetail)waPairDetail.textContent="";
-      setMemberStatus("success",`✓ WhatsApp sudah terhubung${d.pairedNumber?` • ${String(d.pairedNumber).split(":")[0]}`:""}`);
-      waPairBtn.textContent="Bot Terhubung ✓";
-      showToast("WhatsApp sudah terhubung. Tidak perlu pairing lagi.");
-      updateWaHdState();
-      return;
-    }
-    if(!r.ok)throw new Error(d.message||"Gagal mendapatkan kode pairing.");
-    if(!d.pairingCode)throw new Error("Server tidak mengirim kode pairing.");
-    waPairingCode=d.pairingCode;
-    waPairDetail.textContent=`Kode: ${waPairingCode} • WhatsApp → Perangkat tertaut → Tautkan perangkat.`;
-    waPairResult.hidden=false;
-    setMemberStatus("success","✓ Kode pairing siap");
-    showToast("Kode pairing berhasil dibuat.");
-    waPairBtn.textContent="Kode Dibuat ✓";
-  }catch(e){setMemberStatus("error",`✕ ${e.message}`);showToast(e.message||"Gagal pairing.");}
-  finally{waPairBtn.disabled=false;}
-}
-
-async function handleSelfSend(){
-  const phone=normalizeWaNumber(waTargetInput?.value);
-  if(!/^628\d{7,13}$/.test(phone)){showToast("Nomor WhatsApp belum valid.");return;}
+async function handleNativeShare(){
   if(!waSelectedFile){showToast("Pilih foto atau video terlebih dahulu.");return;}
-  if(!waPaired){showToast("Tautkan perangkat dulu.");return;}
-  waSendBtn.disabled=true;setMemberStatus("checking","Mengirim media ke WhatsApp sendiri…");waSendTitle.textContent="Mengirim media…";
+  if(!navigator.share){
+    setMemberStatus("error","✕ Browser ini tidak mendukung menu Bagikan.");
+    showToast("Gunakan Chrome Android versi terbaru untuk membagikan file.");
+    return;
+  }
+  if(navigator.canShare){
+    try{
+      if(!navigator.canShare({files:[waSelectedFile]})){
+        setMemberStatus("error","✕ Browser tidak mendukung berbagi file ini.");
+        showToast("Coba Chrome Android versi terbaru atau file yang lebih kecil.");
+        return;
+      }
+    }catch{}
+  }
+  waSendBtn.disabled=true;
+  setMemberStatus("checking","Membuka menu Bagikan Android…");
   try{
-    const form=new FormData();form.append("media",waSelectedFile,waSelectedFile.name);form.append("phone",phone);
-    const r=await fetch("/api/wa/send-self",{method:"POST",credentials:"same-origin",body:form});
-    const d=await r.json().catch(()=>({}));
-    if(!r.ok||d.ok!==true)throw new Error(d.message||"Gagal mengirim media.");
-    setMemberStatus("success","✓ Media berhasil dikirim");waSendTitle.textContent="Berhasil";waSendDetail.textContent="Media sudah masuk ke chat WhatsApp sendiri.";showToast("Media berhasil dikirim ke WhatsApp.");
-  }catch(e){setMemberStatus("error",`✕ ${e.message}`);waSendTitle.textContent="Gagal mengirim";waSendDetail.textContent=e.message||"Coba lagi.";showToast(e.message||"Gagal mengirim media.");}
-  finally{waSendBtn.disabled=false;}
+    await navigator.share({title:"ARVIRMDN — Upload Status WA HD",text:"Bagikan media",files:[waSelectedFile]});
+    setMemberStatus("success","✓ Menu Bagikan selesai digunakan");
+    waSendTitle.textContent="Berhasil dibagikan";
+    waSendDetail.textContent="Pilih WhatsApp dari menu Bagikan Android untuk menentukan chat/status";
+  }catch(e){
+    if(e?.name==="AbortError"){
+      setMemberStatus("success","Menu Bagikan ditutup");
+      waSendTitle.textContent="Siap dibagikan";
+      waSendDetail.textContent=`${waSelectedFile.name} • tekan Bagikan lalu pilih WhatsApp`;
+    }else{
+      setMemberStatus("error",`✕ ${e.message||"Gagal membuka menu Bagikan."}`);
+      showToast(e.message||"Gagal membuka menu Bagikan.");
+    }
+  }finally{waSendBtn.disabled=!waSelectedFile;}
 }
-function resetWaHdTool(){if(waSelectedObjectUrl)URL.revokeObjectURL(waSelectedObjectUrl);waSelectedObjectUrl=null;waSelectedFile=null;waPairingCode="";waPaired=false;if(waHdWorkspace)waHdWorkspace.hidden=true;if(waHdInput)waHdInput.value="";if(waTargetInput)waTargetInput.value="";if(waMediaPreview)waMediaPreview.hidden=true;if(waHdResult)waHdResult.hidden=true;if(waPairResult)waPairResult.hidden=true;if(waPreviewMedia)waPreviewMedia.innerHTML="";if(waFileInfo)waFileInfo.innerHTML="";if(waSendBtn)waSendBtn.disabled=true;if(waPairBtn)waPairBtn.textContent="Jadi Bot →";clearMemberStatus();}
+function resetWaHdTool(){if(waSelectedObjectUrl)URL.revokeObjectURL(waSelectedObjectUrl);waSelectedObjectUrl=null;waSelectedFile=null;if(waHdWorkspace)waHdWorkspace.hidden=true;if(waHdInput)waHdInput.value="";if(waMediaPreview)waMediaPreview.hidden=true;if(waHdResult)waHdResult.hidden=true;if(waPreviewMedia)waPreviewMedia.innerHTML="";if(waFileInfo)waFileInfo.innerHTML="";if(waSendBtn)waSendBtn.disabled=true;clearMemberStatus();}
 function escapeHtml(value){return String(value).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));}
