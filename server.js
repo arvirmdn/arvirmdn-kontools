@@ -207,8 +207,10 @@ app.post("/api/wa/send-self", requireAuth, waUpload.single("media"), async (req,
       `Content-Type: ${req.file.mimetype}\r\n\r\n`
     );
     const fileBuffer = await fs.promises.readFile(req.file.path);
-    const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
-    const body = Buffer.concat([head, fileBuffer, tail]);
+    const phone = String(req.body.phone || "").replace(/\D/g, "");
+    const phonePart = Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="phone"\r\n\r\n${phone}\r\n`);
+    const tail = Buffer.from(`--${boundary}--\r\n`);
+    const body = Buffer.concat([head, fileBuffer, Buffer.from("\r\n"), phonePart, tail]);
     const r = await fetch(`${botApiUrl}/send-self`, {
       method:"POST",
       headers:{"Content-Type":`multipart/form-data; boundary=${boundary}`,"Content-Length":String(body.length)},
