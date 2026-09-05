@@ -236,7 +236,9 @@ async function handleNativeShare(){
   waSendBtn.disabled=true;
   setMemberStatus("checking","Membuka menu Bagikan Android…");
   try{
-    await navigator.share({title:"ARVIRMDN — Upload Status WA HD",text:"Bagikan media",files:[waSelectedFile]});
+    // Android/Chrome lebih kompatibel bila file dibagikan tanpa title/text tambahan.
+    // File asli tetap digunakan; tidak ada kompresi atau re-encoding.
+    await navigator.share({files:[waSelectedFile]});
     setMemberStatus("success","✓ Menu Bagikan selesai digunakan");
     waSendTitle.textContent="Berhasil dibagikan";
     waSendDetail.textContent="Pilih WhatsApp dari menu Bagikan Android untuk menentukan chat/status";
@@ -246,8 +248,9 @@ async function handleNativeShare(){
       waSendTitle.textContent="Siap dibagikan";
       waSendDetail.textContent=`${waSelectedFile.name} • tekan Bagikan lalu pilih WhatsApp`;
     }else{
-      setMemberStatus("error",`✕ ${e.message||"Gagal membuka menu Bagikan."}`);
-      showToast(e.message||"Gagal membuka menu Bagikan.");
+      const msg = e?.message || "Gagal membuka menu Bagikan.";
+      setMemberStatus("error",`✕ ${msg}`);
+      showToast(msg + (waSelectedFile.type.startsWith("video/") ? " Jika video besar gagal, coba Chrome Android terbaru." : ""));
     }
   }finally{waSendBtn.disabled=!waSelectedFile;}
 }
