@@ -294,10 +294,3 @@ button{cursor:pointer}
     overflow:visible;
   }
 }
-
-/* Token system V2 */
-.token-panel{margin-top:14px;padding:16px;border:1px solid rgba(184,255,90,.16);background:rgba(184,255,90,.035);border-radius:16px;display:flex;align-items:center;justify-content:space-between;gap:16px}.token-panel-copy{display:flex;flex-direction:column;gap:4px;min-width:0}.token-panel-copy>span{font-size:8px;letter-spacing:.16em;color:var(--accent);font-weight:900}.token-panel-copy strong{font-size:25px;letter-spacing:.08em;overflow-wrap:anywhere}.token-panel-copy small{font-size:9px;color:var(--muted)}.token-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.token-actions button{white-space:nowrap}.token-actions .secondary-btn{cursor:pointer}.token-actions button:disabled{opacity:.45;cursor:not-allowed}
-@media(max-width:700px){.token-panel{align-items:stretch;flex-direction:column}.token-actions{display:grid;grid-template-columns:1fr 1fr}.token-actions button{width:100%;justify-content:center}.token-panel-copy strong{font-size:22px}}
-
-.status-action-panel{margin-top:14px}.status-action-panel .token-actions .primary-btn{min-width:150px}
-@media(max-width:700px){.status-action-panel .token-actions{display:block}.status-action-panel .token-actions button{width:100%}}
