@@ -1,3 +1,33 @@
+
+async function shareMediaFile(file) {
+  if (!file) throw new Error("File belum dipilih.");
+  // Chrome Android may reject sharing large video Files from a web page.
+  // For video, save the original file first and let Android's file/Downloads UI
+  // handle the next share step. For smaller/compatible files, try Web Share.
+  if (file.type && file.type.startsWith("video/")) {
+    downloadMediaFile(file);
+    return { downloaded: true };
+  }
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    await navigator.share({ files: [file] });
+    return { shared: true };
+  }
+  downloadMediaFile(file);
+  return { downloaded: true };
+}
+
+
+function downloadMediaFile(file) {
+  const url = URL.createObjectURL(file);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = file.name || (file.type.startsWith("video/") ? "video.mp4" : "image");
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
 const sidebar = document.getElementById("sidebar");
 const backdrop = document.getElementById("backdrop");
 const openSidebar = document.getElementById("openSidebar");
