@@ -3,35 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#090b12">
-  <title>arvirmdn kontools v0.1 — Premium Access</title>
+  <meta name="theme-color" content="#0b1622">
+  <title>arvirmdn kontools v0.1 — Masuk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body class="auth-page">
-  <div class="ambient ambient-one"></div>
-  <div class="ambient ambient-two"></div>
-
   <main class="auth-shell">
     <section class="brand-panel">
-      <div class="brand-mark">A</div>
-      <span class="eyebrow">arvirmdn kontools v0.1</span>
-      <h1 class="auth-brand-title"><span>arvirmdn</span><span>kontools</span><span>v0.1</span></h1>
-      <p>Daftar dan masuk untuk lanjut ke halaman arvirmdn kontools v0.1.</p>
-      <div class="mini-stats">
-        <div><strong>01</strong><span>Secure Access</span></div>
-        <div><strong>02</strong><span>Modern UI</span></div>
-        <div><strong>03</strong><span>Ready to Scale</span></div>
+      <span class="panel-kicker">arvirmdn kontools v0.1</span>
+
+      <svg class="hero-diagram" viewBox="0 0 380 380" fill="none" aria-hidden="true">
+        <circle class="fixed-line spin-ring" cx="150" cy="175" r="140" stroke-dasharray="2 10" stroke-width="1.2" opacity=".5"/>
+        <polygon class="accent-shape" points="224.5,218 150,261 75.5,218 75.5,132 150,89 224.5,132" stroke-width="2"/>
+        <circle class="fixed-line" cx="150" cy="175" r="30" stroke-width="1.6"/>
+        <polygon class="fixed-line" points="334,90 317,119.4 283,119.4 266,90 283,60.6 317,60.6" stroke-width="1.6"/>
+        <line class="fixed-line" x1="224.5" y1="150" x2="283" y2="108" stroke-width="1.2" stroke-dasharray="3 5"/>
+        <line class="fixed-line" x1="75.5" y1="218" x2="75.5" y2="330" stroke-width="1.2"/>
+        <line class="fixed-line" x1="224.5" y1="218" x2="224.5" y2="330" stroke-width="1.2"/>
+        <line class="accent-shape" x1="75.5" y1="322" x2="224.5" y2="322" stroke-width="1.4"/>
+        <text x="150" y="352" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="currentColor" opacity=".8">149 mm</text>
+      </svg>
+
+      <h1>Satu akses, semua <b>tools</b> kamu siap pakai.</h1>
+      <p>Masuk untuk membuka dashboard arvirmdn kontools v0.1 — tempat kamu mengelola akun dan tools pribadimu.</p>
+
+      <div class="feature-list">
+        <div class="feature-row">
+          <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg>
+          <span><strong>Login aman</strong>Kata sandi kamu disimpan terenkripsi, bukan teks biasa.</span>
+        </div>
+        <div class="feature-row">
+          <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 005.4-5.4l-2.2 2.2-2-2z"/></svg>
+          <span><strong>Semua tools di satu tempat</strong>Tidak perlu pindah-pindah halaman untuk tiap tools.</span>
+        </div>
+        <div class="feature-row">
+          <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg>
+          <span><strong>Dashboard pribadi</strong>Pantau status akun kapan saja setelah masuk.</span>
+        </div>
       </div>
     </section>
 
     <section class="auth-card">
       <div class="auth-head">
         <div>
-          <span class="eyebrow">WELCOME BACK</span>
+          <span class="panel-kicker">Selamat datang</span>
           <h2 id="authTitle">Masuk ke akun</h2>
           <p id="authSubtitle">Kelola semuanya dari satu tempat.</p>
         </div>
-        <div class="status-dot" title="System ready"></div>
+        <div class="status-led" title="Sistem siap"></div>
       </div>
 
       <div class="tabs">
@@ -60,7 +82,7 @@
 
         <div id="message" class="form-message" role="alert"></div>
         <button id="submitBtn" class="primary-btn" type="submit">
-          <span id="submitText">Masuk</span><span class="arrow">↗</span>
+          <span id="submitText">Masuk</span>
         </button>
       </form>
 

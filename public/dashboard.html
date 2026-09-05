@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#090b12">
+  <meta name="theme-color" content="#0b1622">
   <title>arvirmdn kontools v0.1 — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body class="dashboard-page">
@@ -12,8 +15,15 @@
 
   <aside class="sidebar" id="sidebar">
     <div class="side-top">
-      <a class="side-brand" href="/dashboard"><span class="brand-symbol">A</span><b><strong>ARVIRMDN</strong><small>KONTOOLS V0.1</small></b></a>
-      <button class="icon-btn side-close" id="closeSidebar" type="button" aria-label="Tutup sidebar">×</button>
+      <a class="side-brand" href="/dashboard">
+        <span class="brand-badge">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 005.4-5.4l-2.2 2.2-2-2z"/></svg>
+        </span>
+        <b><strong>ARVIRMDN</strong><small>Kontools v0.1</small></b>
+      </a>
+      <button class="icon-btn side-close" id="closeSidebar" type="button" aria-label="Tutup sidebar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
     </div>
 
     <div class="profile-mini">
@@ -25,169 +35,171 @@
     </div>
 
     <nav class="nav">
-      <button class="nav-item" type="button" data-page="profile"><span>◎</span>Profil</button>
-      <button class="nav-item active" type="button" data-page="overview"><span>⌂</span>Halaman Utama</button>
-      <button class="nav-item" type="button" data-page="tools"><span>✦</span>Tools</button>
-      <button class="nav-item" type="button" data-page="settings"><span>⚙</span>Pengaturan</button>
+      <button class="nav-item active" type="button" data-page="overview">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/></svg>
+        Halaman Utama
+      </button>
+      <button class="nav-item" type="button" data-page="tools">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 005.4-5.4l-2.2 2.2-2-2z"/></svg>
+        Tools
+      </button>
+      <button class="nav-item" type="button" data-page="profile">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.4-3.6 4.2-5.4 7-5.4S18.6 16.4 20 20"/></svg>
+        Profil
+      </button>
+      <button class="nav-item" type="button" data-page="settings">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 12.9a7.4 7.4 0 000-1.8l1.9-1.5-2-3.4-2.2.9a7.3 7.3 0 00-1.5-.9L15.3 4h-4l-.3 2.2a7.3 7.3 0 00-1.5.9l-2.2-.9-2 3.4L7.2 11a7.4 7.4 0 000 1.8l-1.9 1.5 2 3.4 2.2-.9c.5.4 1 .7 1.5.9l.3 2.3h4l.3-2.2c.5-.2 1-.5 1.5-.9l2.2.9 2-3.4-1.9-1.6z"/></svg>
+        Pengaturan
+      </button>
     </nav>
 
     <div class="side-bottom">
-      <div class="side-note"><span>●</span> System online</div>
-      <button class="logout-btn" id="logoutBtn" type="button"><span>↪</span> Keluar</button>
+      <div class="side-note"><span class="status-led"></span> Sistem online</div>
+      <button class="logout-btn" id="logoutBtn" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 5H5v14h4M13 12h8m0 0l-3-3m3 3l-3 3"/></svg>
+        Keluar
+      </button>
     </div>
   </aside>
 
   <div class="main-area">
     <header class="topbar">
-      <button class="icon-btn menu-toggle" id="openSidebar" type="button" aria-label="Buka sidebar">☰</button>
-      <div class="crumb"><span>Dashboard</span><i>/</i><b id="pageName">Overview</b></div>
+      <button class="icon-btn menu-toggle" id="openSidebar" type="button" aria-label="Buka sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="crumb"><span>Dashboard</span><i>/</i><b id="pageName">Halaman Utama</b></div>
       <div class="top-actions">
-        <button class="icon-btn" id="notifyBtn" type="button" aria-label="Notifikasi" title="Notifikasi">🔔</button>
+        <button class="icon-btn" id="notifyBtn" type="button" aria-label="Notifikasi" title="Notifikasi">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 10a6 6 0 1112 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10z"/><path d="M10 19a2 2 0 004 0"/></svg>
+        </button>
         <div class="top-avatar" id="topAvatar">A</div>
       </div>
     </header>
 
     <main class="content">
       <section id="overviewPage" class="page active">
-        <div class="overview-head">
+        <div class="page-head-row overview-head">
           <div>
-            <span class="eyebrow">OVERVIEW</span>
-            <h1>Selamat datang kembali, <span id="heroName">arvirmdn</span> <b class="wave">👋</b></h1>
-            <p>Semangat hari ini, selesaikan lebih banyak hal hebat.</p>
+            <span class="panel-kicker">Ringkasan</span>
+            <h1>Halo, <span id="heroName">arvirmdn</span></h1>
+            <p>Begini kondisi akun dan sistem kamu hari ini.</p>
           </div>
         </div>
 
-        <div class="stats-grid overview-stats">
-          <article class="stat-card premium-stat"><span class="stat-icon">♙</span><div><small>STATUS AKUN</small><strong>Aktif</strong><em>Akun kamu aktif dan aman.</em></div><i class="status-dot"></i></article>
-          <article class="stat-card premium-stat"><span class="stat-icon">♛</span><div><small>AKSES PREMIUM</small><strong>Premium</strong><em>Nikmati semua fitur tanpa batas.</em></div><i class="status-dot"></i></article>
-          <article class="stat-card premium-stat"><span class="stat-icon">⌁</span><div><small>STATUS SISTEM</small><strong>Online</strong><em>Semua sistem berjalan normal.</em></div><i class="status-dot"></i></article>
+        <div class="stat-row">
+          <article class="stat-panel">
+            <span class="stat-label">Status akun</span>
+            <strong class="stat-value">Aktif</strong>
+            <span class="stat-note">Akun aman dan terverifikasi</span>
+          </article>
+          <article class="stat-panel">
+            <span class="stat-label">Akses</span>
+            <strong class="stat-value">Premium</strong>
+            <span class="stat-note">Semua fitur tanpa batas</span>
+          </article>
+          <article class="stat-panel">
+            <span class="stat-label">Sistem</span>
+            <strong class="stat-value">Online</strong>
+            <span class="stat-note">Server berjalan normal</span>
+          </article>
         </div>
 
-        <div class="overview-animation-card premium-live-card">
-          <div class="live-heading"><span class="live-pill"><i></i> LIVE SYSTEM</span></div>
-          <div class="system-animation" aria-hidden="true">
-            <div class="orbit orbit-one"></div>
-            <div class="core"><b>A</b><strong>ARVIRMDN</strong><small>KONTOOLS V0.1</small></div>
+        <div class="signal-panel sheet">
+          <div class="signal-copy">
+            <span class="panel-kicker">Live status</span>
+            <h2>Semua layanan berjalan normal</h2>
+            <p>Uptime dan performa server dipantau otomatis setiap saat.</p>
+            <div class="signal-metrics">
+              <div><small>Server</small><strong>Online</strong></div>
+              <div><small>Keamanan</small><strong>Aman</strong></div>
+              <div><small>Performa</small><strong>Optimal</strong></div>
+            </div>
           </div>
-          <div class="live-status-line"><span></span> System is running smoothly</div>
-        </div>
-
-        <div class="overview-metrics">
-          <div><span class="metric-icon">◷</span><small>UPTIME</small><strong>99.9%</strong><em>Sistem stabil</em></div>
-          <div><span class="metric-icon">▣</span><small>SERVER</small><strong>Online</strong><em>Lokasi aktif</em></div>
-          <div><span class="metric-icon">♢</span><small>SECURITY</small><strong>Aman</strong><em>Proteksi aktif</em></div>
-          <div><span class="metric-icon">ϟ</span><small>PERFORMANCE</small><strong>Optimal</strong><em>Kinerja baik</em></div>
+          <div class="signal-gauge">
+            <svg viewBox="0 0 140 140">
+              <circle class="gauge-track" cx="70" cy="70" r="62"/>
+              <circle class="gauge-value" cx="70" cy="70" r="62"/>
+            </svg>
+            <div class="gauge-center"><strong>99.9%</strong><small>uptime</small></div>
+          </div>
         </div>
 
         <div class="overview-bottom-grid">
-          <article class="overview-info-card">
-            <div class="info-card-head"><span>⌁</span><b>AKTIVITAS TERBARU</b></div>
+          <article class="panel activity-panel">
+            <span class="panel-kicker">Aktivitas terbaru</span>
             <div class="activity-list">
-              <div><i></i><p><strong>Login berhasil</strong><small>Akun berhasil masuk</small></p><time>Now</time></div>
-              <div><i></i><p><strong>Mengakses Overview</strong><small>Dashboard utama dibuka</small></p><time>Now</time></div>
+              <div><i></i><p><strong>Login berhasil</strong><small>Akun berhasil masuk</small></p><time>Baru saja</time></div>
+              <div><i></i><p><strong>Membuka Halaman Utama</strong><small>Dashboard utama dibuka</small></p><time>Baru saja</time></div>
               <div><i></i><p><strong>Sistem online</strong><small>Semua layanan normal</small></p><time>Live</time></div>
             </div>
           </article>
-          <article class="overview-info-card announcement-card">
-            <div class="info-card-head"><span>♢</span><b>PENGUMUMAN</b></div>
-            <h3>Selamat datang di <span>arvirmdn kontools v0.1</span></h3>
-            <p>Pantau informasi terbaru dan nikmati pengalaman dashboard yang lebih rapi.</p>
+          <article class="panel announcement-panel">
+            <span class="panel-kicker">Pengumuman</span>
+            <h3>Selamat datang di arvirmdn kontools v0.1</h3>
+            <p>Pantau status akun dan akses tools dari satu dashboard yang sama.</p>
           </article>
         </div>
       </section>
 
       <section id="toolsPage" class="page">
         <div class="page-head-row">
-          <div><span class="eyebrow">TOOLS</span><h1>Tools</h1><p>Gunakan tools praktis yang tersedia di arvirmdn kontools v0.1.</p></div>
+          <div><h1>Tools</h1><p>Kumpulan tools praktis arvirmdn kontools v0.1.</p></div>
         </div>
 
-        <div class="tools-grid">
-          <article class="tool-card tool-card-featured">
-            <div class="tool-card-icon">↗</div>
-            <div class="tool-card-copy">
-              <span class="tool-badge">MEDIA</span>
-              <h2>Upload Status WA HD</h2>
-              <p>Pilih foto atau video, lalu bagikan langsung lewat menu berbagi Android dan pilih WhatsApp atau aplikasi tujuan lainnya.</p>
-            </div>
-            <button class="primary-btn tool-open-btn" id="openWaHdBtn" type="button">Buka <span>→</span></button>
-          </article>
-        </div>
+        <div class="tools-grid"></div>
 
-        <div class="tool-workspace" id="waHdWorkspace" hidden>
-          <div class="tool-workspace-head">
-            <div><span class="eyebrow">UPLOAD STATUS WA HD</span><h2>Bagikan Media</h2><p>Pilih foto atau video, kemudian tekan Bagikan. Pilih WhatsApp sendiri dari menu berbagi Android.</p></div>
-            <button class="icon-btn workspace-close" id="closeWaHdBtn" type="button" aria-label="Tutup tool">×</button>
-          </div>
-
-          <div class="wa-target-card">
-            <div class="wa-field-label"><span>↗</span> Bagikan ke aplikasi pilihanmu</div>
-            <small>Tidak perlu pairing atau memasukkan nomor. Setelah memilih media, Android akan menampilkan aplikasi yang bisa menerima file, termasuk WhatsApp.</small>
-          </div>
-
-          <label class="upload-dropzone" id="waDropzone" for="waHdInput">
-            <span class="upload-icon">↑</span>
-            <strong>Pilih foto atau video</strong>
-            <small>JPG, PNG, WebP, MP4, MOV, WebM • maksimal 200 MB</small>
-            <input id="waHdInput" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" hidden>
-          </label>
-
-          <div class="wa-media-preview" id="waMediaPreview" hidden>
-            <div class="preview-box">
-              <small>PREVIEW MEDIA ASLI</small>
-              <div id="waPreviewMedia" class="wa-preview-media"></div>
-            </div>
-            <div class="wa-file-info" id="waFileInfo"></div>
-          </div>
-
-          <div class="wa-quality-note">
-            <strong>✓ File asli dipertahankan</strong>
-            <span>Website tidak me-render ulang atau mengompres file. File dibagikan langsung ke aplikasi pilihanmu melalui menu berbagi Android.</span>
-          </div>
-
-          <div class="wa-member-status" id="waMemberStatus" hidden></div>
-
-          <div class="tool-result wa-send-result" id="waHdResult" hidden>
-            <div class="wa-result-copy"><strong id="waSendTitle">Siap dibagikan</strong><small id="waSendDetail">Pilih foto atau video untuk mulai.</small></div>
-            <button class="primary-btn" id="waSendBtn" type="button" disabled>Bagikan <span>↗</span></button>
-          </div>
+        <div class="empty-slate sheet">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 005.4-5.4l-2.2 2.2-2-2z"/><path d="M18 4v4M16 6h4" stroke-width="1.7"/></svg>
+          <h3>Belum ada tools di sini</h3>
+          <p>Tools baru akan langsung muncul di halaman ini begitu ditambahkan.</p>
         </div>
       </section>
 
       <section id="profilePage" class="page">
-        <div class="profile-page-card">
-          <div class="profile-page-head">
-            <div class="avatar profile-large profile-photo" id="profileAvatar">A</div>
-            <div class="profile-head-copy"><span class="eyebrow">MY PROFILE</span><h1 id="profileName">User</h1><p id="profileEmail">email</p></div>
-          </div>
-
-          <div class="profile-actions">
-            <label class="secondary-btn" for="photoInput">📷 Ubah Foto Profil</label>
-            <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
-          </div>
-
-          <div class="profile-info-grid">
-            <div class="profile-info"><small>Nama</small><strong id="profileNameValue">User</strong></div>
-            <div class="profile-info"><small>Email</small><strong id="profileEmailValue">email</strong></div>
-            <div class="profile-info"><small>Status</small><strong class="accent-text">Aktif</strong></div>
-            <div class="profile-info"><small>Akses</small><strong>Premium</strong></div>
-          </div>
-
-          <div class="password-card">
-            <div class="password-head"><div><span class="eyebrow">SECURITY</span><h2>Ganti Sandi</h2></div></div>
-            <form id="passwordForm">
-              <div class="password-grid">
-                <div class="field"><label for="currentPassword">Sandi saat ini</label><input id="currentPassword" type="password" autocomplete="current-password" required></div>
-                <div class="field"><label for="newPassword">Sandi baru</label><input id="newPassword" type="password" autocomplete="new-password" minlength="6" required></div>
+        <div class="profile-layout">
+          <div class="panel profile-card">
+            <div class="profile-identity">
+              <div class="avatar profile-photo" id="profileAvatar">A</div>
+              <div>
+                <span class="panel-kicker">Profil saya</span>
+                <h1 id="profileName">User</h1>
+                <p id="profileEmail">email</p>
               </div>
+            </div>
+
+            <label class="ghost-btn" for="photoInput">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>
+              Ubah Foto Profil
+            </label>
+            <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+
+            <div class="info-grid">
+              <div class="info-row"><small>Nama</small><strong id="profileNameValue">User</strong></div>
+              <div class="info-row"><small>Email</small><strong id="profileEmailValue">email</strong></div>
+              <div class="info-row"><small>Status</small><strong class="accent-text">Aktif</strong></div>
+              <div class="info-row"><small>Akses</small><strong>Premium</strong></div>
+            </div>
+          </div>
+
+          <div class="panel password-card">
+            <span class="panel-kicker">Keamanan</span>
+            <h2>Ganti kata sandi</h2>
+            <form id="passwordForm">
+              <div class="field"><label for="currentPassword">Sandi saat ini</label><input id="currentPassword" type="password" autocomplete="current-password" required></div>
+              <div class="field"><label for="newPassword">Sandi baru</label><input id="newPassword" type="password" autocomplete="new-password" minlength="6" required></div>
               <div class="form-message" id="passwordMessage"></div>
-              <button class="primary-btn password-btn" type="submit">Simpan Sandi <span class="arrow">→</span></button>
+              <button class="primary-btn" type="submit">Simpan Sandi</button>
             </form>
           </div>
         </div>
       </section>
 
       <section id="settingsPage" class="page">
-        <div class="placeholder-card"><span class="eyebrow">SETTINGS</span><h1>Pengaturan.</h1><p>Pengaturan dashboard akan ditambahkan di sini.</p></div>
+        <div class="empty-slate sheet">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 12.9a7.4 7.4 0 000-1.8l1.9-1.5-2-3.4-2.2.9a7.3 7.3 0 00-1.5-.9L15.3 4h-4l-.3 2.2a7.3 7.3 0 00-1.5.9l-2.2-.9-2 3.4L7.2 11a7.4 7.4 0 000 1.8l-1.9 1.5 2 3.4 2.2-.9c.5.4 1 .7 1.5.9l.3 2.3h4l.3-2.2c.5-.2 1-.5 1.5-.9l2.2.9 2-3.4-1.9-1.6z"/></svg>
+          <h3>Pengaturan sedang disiapkan</h3>
+          <p>Opsi pengaturan akun akan tersedia di halaman ini pada pembaruan berikutnya.</p>
+        </div>
       </section>
     </main>
   </div>
