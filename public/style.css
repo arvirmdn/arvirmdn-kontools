@@ -336,3 +336,49 @@ svg{display:block}
   .brand-panel h1{font-size:28px}
   .auth-card{padding:18px}
 }
+
+/* ============================== ANIMASI & MICRO-INTERACTION ============================== */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+@keyframes ledPulse{0%,100%{box-shadow:0 0 6px var(--accent-2)}50%{box-shadow:0 0 15px var(--accent-2)}}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* Kartu masuk/daftar muncul halus, bukan langsung nongol */
+.brand-panel .panel-kicker,.brand-panel .hero-diagram,.brand-panel h1,.brand-panel>p,.brand-panel .feature-list{
+  animation:fadeInUp .6s ease both;
+}
+.brand-panel .panel-kicker{animation-delay:.02s}
+.brand-panel .hero-diagram{animation-delay:.08s}
+.brand-panel h1{animation-delay:.14s}
+.brand-panel>p{animation-delay:.2s}
+.brand-panel .feature-list{animation-delay:.26s}
+.auth-card{animation:popIn .5s ease both;animation-delay:.1s}
+
+/* Tombol & item interaktif terasa "ditekan", bukan statis */
+.primary-btn,.ghost-btn,.icon-btn,.tab,.nav-item,.logout-btn{
+  transition:transform .15s ease,background-color .2s ease,border-color .2s ease,color .2s ease;
+}
+.primary-btn:active{transform:scale(.97)}
+.ghost-btn:active,.icon-btn:active,.tab:active,.nav-item:active,.logout-btn:active{transform:scale(.96)}
+
+/* Status "online" berdenyut pelan supaya kelihatan hidup */
+.status-led{animation:ledPulse 2.2s ease-in-out infinite}
+
+/* Kartu dashboard sedikit terangkat saat disentuh/dihover */
+.stat-panel,.panel,.signal-panel{transition:transform .2s ease,border-color .2s ease}
+.stat-panel:hover,.panel:hover,.signal-panel:hover{transform:translateY(-3px);border-color:var(--line-strong)}
+
+/* Baris aktivitas bereaksi saat disentuh */
+.activity-list>div{transition:background-color .15s ease,padding-left .15s ease;border-radius:8px}
+.activity-list>div:hover{background:var(--panel-2);padding-left:8px}
+
+/* Perpindahan halaman dashboard: fade + geser naik, bukan langsung ganti */
+.page.active{animation:fadeInUp .4s ease both}
+
+/* Kartu statistik muncul bertahap (staggered), bukan serentak kaku */
+.stat-panel:nth-child(1){animation:fadeInUp .5s ease both .05s}
+.stat-panel:nth-child(2){animation:fadeInUp .5s ease both .12s}
+.stat-panel:nth-child(3){animation:fadeInUp .5s ease both .19s}
+
+/* Toast masuk dengan gerakan kecil, bukan langsung muncul */
+.toast.show{animation:toastIn .25s ease both}

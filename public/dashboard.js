@@ -136,8 +136,12 @@ photoInput.addEventListener("change", async () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Gagal menyimpan foto.");
       setAvatar(data.user.profilePhoto, (data.user.name || "A").charAt(0).toUpperCase());
+      if (window.playSuccessSound) window.playSuccessSound();
       showToast("Foto profil berhasil diubah.");
-    } catch (error) { showToast(error.message); }
+    } catch (error) {
+      if (window.playErrorSound) window.playErrorSound();
+      showToast(error.message);
+    }
     photoInput.value = "";
   };
   reader.readAsDataURL(file);
@@ -157,8 +161,10 @@ passwordForm.addEventListener("submit", async (event) => {
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || "Gagal mengganti sandi.");
     passwordForm.reset();
+    if (window.playSuccessSound) window.playSuccessSound();
     showToast("Sandi berhasil diganti.");
   } catch (error) {
+    if (window.playErrorSound) window.playErrorSound();
     passwordMessage.textContent = error.message;
     passwordMessage.classList.add("error");
   }

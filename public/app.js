@@ -62,8 +62,10 @@ form.addEventListener("submit", async (event) => {
 
     if (!response.ok) throw new Error(data.message || "Terjadi kesalahan.");
 
+    if (window.playSuccessSound) window.playSuccessSound();
     window.location.assign("/dashboard");
   } catch (error) {
+    if (window.playErrorSound) window.playErrorSound();
     setMessage(error.message, "error");
     submitBtn.disabled = false;
     submitText.textContent = mode === "register" ? "Daftar" : "Masuk";
