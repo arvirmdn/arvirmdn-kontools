@@ -51,6 +51,12 @@ app.use(session({
 
 app.use(express.static(path.join(__dirname, "public")));
 
+// Extensionless dashboard route used after login.
+app.get("/dashboard", (req, res) => {
+  if (!req.session.user) return res.redirect("/");
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+});
+
 app.get("/health", (req, res) => {
   res.status(200).json({ ok: true, status: "healthy" });
 });
