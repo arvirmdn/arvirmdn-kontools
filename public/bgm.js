@@ -3,7 +3,7 @@
 
   var audio = new Audio("/audio/backsound.mp3");
   audio.loop = true;
-  audio.volume = 0.45; // lebih kencang dari sebelumnya
+  audio.volume = 0.45;
   audio.preload = "auto";
   audio.muted = localStorage.getItem(STORAGE_KEY) === "1";
 

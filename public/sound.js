@@ -30,17 +30,17 @@
 
   // Klik ringan ala menu GTA (blip pendek turun nada)
   window.playTouchSound = function () {
-    tone({ freqStart: 1200, freqEnd: 600, duration: 0.08, volume: 0.15, type: "square" });
+    tone({ freqStart: 1200, freqEnd: 600, duration: 0.08, volume: 0.6, type: "square" });
   };
 
   // Nada naik untuk aksi berhasil
   window.playSuccessSound = function () {
-    tone({ freqStart: 700, freqEnd: 1150, duration: 0.13, volume: 0.16, type: "square" });
+    tone({ freqStart: 700, freqEnd: 1150, duration: 0.13, volume: 0.6, type: "square" });
   };
 
   // Nada turun/kasar untuk error
   window.playErrorSound = function () {
-    tone({ freqStart: 320, freqEnd: 170, duration: 0.16, volume: 0.18, type: "sawtooth" });
+    tone({ freqStart: 320, freqEnd: 170, duration: 0.16, volume: 0.62, type: "sawtooth" });
   };
 
   // Auto-attach ke semua elemen yang bisa disentuh
