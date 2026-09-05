@@ -100,7 +100,7 @@ svg{display:block}
 
 /* ============================== AUTH PAGE ============================== */
 .auth-page{
-  min-height:100vh;display:grid;place-items:center;padding:32px;position:relative;overflow:hidden;
+  min-height:100vh;min-height:100svh;display:grid;place-items:center;padding:32px;position:relative;
 }
 .auth-shell{
   width:min(1080px,100%);display:grid;grid-template-columns:1.05fr 460px;gap:56px;align-items:center;
