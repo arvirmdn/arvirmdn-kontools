@@ -382,3 +382,14 @@ svg{display:block}
 
 /* Toast masuk dengan gerakan kecil, bukan langsung muncul */
 .toast.show{animation:toastIn .25s ease both}
+
+/* Tombol mute/unmute musik latar (mengambang) */
+.bgm-toggle{
+  position:fixed;z-index:40;bottom:22px;left:22px;
+  width:42px;height:42px;border-radius:50%;
+  border:1px solid var(--line-strong);background:var(--panel-2);color:var(--accent-2);
+  display:grid;place-items:center;box-shadow:var(--shadow);
+  transition:transform .15s ease,border-color .15s ease;
+}
+.bgm-toggle:hover{transform:translateY(-2px);border-color:var(--accent-2)}
+.bgm-toggle:active{transform:scale(.94)}
