@@ -210,6 +210,10 @@ const ytPlayerFrame = document.getElementById("ytPlayerFrame");
 const ytAudioBar = document.getElementById("ytAudioBar");
 const ytAudioTitle = document.getElementById("ytAudioTitle");
 const ytAudioModeToggle = document.getElementById("ytAudioModeToggle");
+const ytPlayPauseBtn = document.getElementById("ytPlayPauseBtn");
+const ytPlayIcon = document.getElementById("ytPlayIcon");
+const ytPauseIcon = document.getElementById("ytPauseIcon");
+const ytPlayPauseLabel = document.getElementById("ytPlayPauseLabel");
 const playlistResults = document.getElementById("playlistResults");
 const playlistEmptySlate = document.getElementById("playlistEmptySlate");
 
@@ -234,6 +238,7 @@ function resetYtResultsView() {
   ytResultsHead.hidden = true;
   ytPlayerWrap.hidden = true;
   if (ytPlayerInstance && ytPlayerInstance.stopVideo) ytPlayerInstance.stopVideo();
+  updatePlayPauseUi(false);
   ytEmptySlate.hidden = false;
   ytEmptySlate.querySelector("h3").textContent = "Cari video untuk mulai nonton";
   ytEmptySlate.querySelector("p").textContent = "Hasil pencarian akan muncul di sini dan bisa langsung diputar tanpa keluar dashboard.";
@@ -283,11 +288,38 @@ window.onYouTubeIframeAPIReady = function () {
   }
 };
 
+function updatePlayPauseUi(isPlaying) {
+  ytPlayIcon.hidden = isPlaying;
+  ytPauseIcon.hidden = !isPlaying;
+  ytPlayPauseLabel.textContent = isPlaying ? "Sedang diputar" : "Dihentikan";
+}
+
+function handleYtStateChange(event) {
+  applyAudioModeVisual();
+  if (event && typeof event.data === "number") {
+    updatePlayPauseUi(event.data === 1); // 1 = YT.PlayerState.PLAYING
+  }
+}
+
+ytPlayPauseBtn.addEventListener("click", () => {
+  if (!ytPlayerInstance || !ytPlayerInstance.getPlayerState) return;
+  const state = ytPlayerInstance.getPlayerState();
+  if (state === 1) {
+    ytPlayerInstance.pauseVideo();
+    updatePlayPauseUi(false);
+  } else {
+    ytPlayerInstance.playVideo();
+    updatePlayPauseUi(true);
+  }
+  if (window.playTouchSound) window.playTouchSound();
+});
+
 function createOrLoadPlayer(videoId, title) {
   ytAudioTitle.textContent = title || "";
   if (ytPlayerInstance && ytPlayerInstance.loadVideoById) {
     ytPlayerInstance.loadVideoById(videoId);
     applyAudioModeVisual();
+    updatePlayPauseUi(true);
     return;
   }
   ytPlayerInstance = new YT.Player("ytPlayer", {
@@ -295,7 +327,7 @@ function createOrLoadPlayer(videoId, title) {
     playerVars: { autoplay: 1, playsinline: 1 },
     events: {
       onReady: applyAudioModeVisual,
-      onStateChange: applyAudioModeVisual
+      onStateChange: handleYtStateChange
     }
   });
 }

@@ -438,6 +438,10 @@ svg{display:block}
 .yt-audio-info strong{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .yt-audio-info small{color:var(--muted);font-size:12px}
 
+.yt-controls{display:flex;align-items:center;gap:10px;margin-top:10px}
+.yt-controls .icon-btn{background:var(--panel-2);border:1px solid var(--line-strong)}
+.yt-controls span{color:var(--muted);font-size:13px}
+
 .yt-thumb-wrap{position:relative}
 .yt-add-btn,.yt-remove-btn{
   position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;border:none;
