@@ -163,6 +163,49 @@ app.post("/api/profile/password", requireAuth, async (req, res) => {
   res.json({ ok: true, message: "Sandi berhasil diganti." });
 });
 
+function sanitizePlaylistItem(body) {
+  const videoId = String(body.videoId || "").trim();
+  const title = String(body.title || "").trim().slice(0, 200);
+  const channel = String(body.channel || "").trim().slice(0, 120);
+  const thumbnail = String(body.thumbnail || "").trim();
+  if (!/^[A-Za-z0-9_-]{6,20}$/.test(videoId)) return null;
+  if (!/^https:\/\/i\.ytimg\.com\//.test(thumbnail) && thumbnail !== "") return null;
+  return { videoId, title, channel, thumbnail };
+}
+
+app.get("/api/playlist", requireAuth, (req, res) => {
+  const users = readUsers();
+  const user = users.find(u => u.id === req.session.user.id);
+  res.json({ ok: true, playlist: (user && user.playlist) || [] });
+});
+
+app.post("/api/playlist", requireAuth, (req, res) => {
+  const item = sanitizePlaylistItem(req.body || {});
+  if (!item) return res.status(400).json({ ok: false, message: "Data video tidak valid." });
+
+  const users = readUsers();
+  const index = users.findIndex(u => u.id === req.session.user.id);
+  if (index === -1) return res.status(404).json({ ok: false, message: "Akun tidak ditemukan." });
+
+  if (!Array.isArray(users[index].playlist)) users[index].playlist = [];
+  if (!users[index].playlist.some(v => v.videoId === item.videoId)) {
+    users[index].playlist.unshift({ ...item, addedAt: new Date().toISOString() });
+  }
+  writeUsers(users);
+  res.json({ ok: true, playlist: users[index].playlist });
+});
+
+app.delete("/api/playlist/:videoId", requireAuth, (req, res) => {
+  const videoId = String(req.params.videoId || "");
+  const users = readUsers();
+  const index = users.findIndex(u => u.id === req.session.user.id);
+  if (index === -1) return res.status(404).json({ ok: false, message: "Akun tidak ditemukan." });
+
+  users[index].playlist = (users[index].playlist || []).filter(v => v.videoId !== videoId);
+  writeUsers(users);
+  res.json({ ok: true, playlist: users[index].playlist });
+});
+
 app.get("/api/youtube/search", requireAuth, async (req, res) => {
   const q = String(req.query.q || "").trim();
   if (!q) return res.status(400).json({ ok: false, message: "Kata kunci pencarian kosong." });
