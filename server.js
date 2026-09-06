@@ -163,6 +163,40 @@ app.post("/api/profile/password", requireAuth, async (req, res) => {
   res.json({ ok: true, message: "Sandi berhasil diganti." });
 });
 
+app.get("/api/youtube/search", requireAuth, async (req, res) => {
+  const q = String(req.query.q || "").trim();
+  if (!q) return res.status(400).json({ ok: false, message: "Kata kunci pencarian kosong." });
+
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ ok: false, message: "YOUTUBE_API_KEY belum diset di server." });
+  }
+
+  try {
+    const url = "https://www.googleapis.com/youtube/v3/search"
+      + `?part=snippet&type=video&maxResults=16&q=${encodeURIComponent(q)}&key=${apiKey}`;
+    const ytRes = await fetch(url);
+    const data = await ytRes.json();
+
+    if (!ytRes.ok) {
+      return res.status(502).json({ ok: false, message: (data.error && data.error.message) || "Gagal mengambil data dari YouTube." });
+    }
+
+    const items = (data.items || [])
+      .filter(item => item.id && item.id.videoId)
+      .map(item => ({
+        videoId: item.id.videoId,
+        title: item.snippet.title,
+        channel: item.snippet.channelTitle,
+        thumbnail: (item.snippet.thumbnails && (item.snippet.thumbnails.medium || item.snippet.thumbnails.default) || {}).url || ""
+      }));
+
+    res.json({ ok: true, items });
+  } catch (err) {
+    res.status(500).json({ ok: false, message: "Terjadi kesalahan saat mencari video." });
+  }
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`ARVIRMDN Premium Web running on port ${PORT}`);
 });
