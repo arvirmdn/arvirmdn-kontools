@@ -396,6 +396,7 @@ svg{display:block}
 
 /* Halaman YouTube */
 .yt-search-row{display:flex;gap:10px;margin:18px 0 14px}
+.yt-search-row .primary-btn{width:auto;flex:none;white-space:nowrap}
 .yt-input-wrap{position:relative;flex:1}
 .yt-input-wrap input{
   width:100%;padding:12px 40px 12px 14px;border-radius:10px;border:1px solid var(--line-strong);
