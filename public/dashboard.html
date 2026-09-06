@@ -51,6 +51,10 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10.5 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg>
         YouTube
       </button>
+      <button class="nav-item" type="button" data-page="playlist">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h12M4 12h12M4 18h8"/><path d="M17 15l4 2.5-4 2.5z" fill="currentColor" stroke="none"/></svg>
+        Playlist
+      </button>
       <button class="nav-item" type="button" data-page="settings">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 12.9a7.4 7.4 0 000-1.8l1.9-1.5-2-3.4-2.2.9a7.3 7.3 0 00-1.5-.9L15.3 4h-4l-.3 2.2a7.3 7.3 0 00-1.5.9l-2.2-.9-2 3.4L7.2 11a7.4 7.4 0 000 1.8l-1.9 1.5 2 3.4 2.2-.9c.5.4 1 .7 1.5.9l.3 2.3h4l.3-2.2c.5-.2 1-.5 1.5-.9l2.2.9 2-3.4-1.9-1.6z"/></svg>
         Pengaturan
@@ -204,15 +208,35 @@
         </div>
 
         <form id="ytSearchForm" class="yt-search-row">
-          <input id="ytSearchInput" type="text" placeholder="Cari video, channel, atau topik..." autocomplete="off" required>
+          <div class="yt-input-wrap">
+            <input id="ytSearchInput" type="text" placeholder="Cari video, channel, atau topik..." autocomplete="off" required>
+            <button class="yt-clear-input" id="ytClearInput" type="button" aria-label="Hapus teks" hidden>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5l14 14M19 5L5 19"/></svg>
+            </button>
+          </div>
           <button class="primary-btn" type="submit">Cari</button>
         </form>
 
+        <label class="yt-audio-toggle">
+          <input type="checkbox" id="ytAudioModeToggle">
+          <span>Mode Hemat Data (sembunyikan video, audio tetap jalan)</span>
+        </label>
+
+        <div id="ytResultsHead" class="yt-results-head" hidden>
+          <span id="ytResultsCount"></span>
+          <button class="ghost-btn" id="ytClearResults" type="button">Hapus Hasil</button>
+        </div>
+
         <div id="ytPlayerWrap" class="yt-player-wrap" hidden>
-          <div class="yt-player-frame">
-            <iframe id="ytPlayer" src="" title="YouTube player" frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen></iframe>
+          <div class="yt-player-frame" id="ytPlayerFrame">
+            <div id="ytPlayer"></div>
+          </div>
+          <div class="yt-audio-bar" id="ytAudioBar" hidden>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            <div class="yt-audio-info">
+              <strong id="ytAudioTitle">Video</strong>
+              <small>Mode hemat data aktif — video disembunyikan, audio tetap jalan</small>
+            </div>
           </div>
         </div>
 
@@ -222,6 +246,20 @@
           <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10.5 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg>
           <h3>Cari video untuk mulai nonton</h3>
           <p>Hasil pencarian akan muncul di sini dan bisa langsung diputar tanpa keluar dashboard.</p>
+        </div>
+      </section>
+
+      <section id="playlistPage" class="page">
+        <div class="page-head-row">
+          <div><h1>Playlist</h1><p>Video YouTube yang kamu simpan.</p></div>
+        </div>
+
+        <div id="playlistResults" class="yt-results-grid"></div>
+
+        <div id="playlistEmptySlate" class="empty-slate sheet">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h12M4 12h12M4 18h8"/><path d="M17 15l4 2.5-4 2.5z" fill="currentColor" stroke="none"/></svg>
+          <h3>Playlist masih kosong</h3>
+          <p>Simpan video dari menu YouTube dengan tombol tambah (+) di pojok setiap hasil pencarian.</p>
         </div>
       </section>
 

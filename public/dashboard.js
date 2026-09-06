@@ -44,6 +44,7 @@ const pages = {
   tools: document.getElementById("toolsPage"),
   profile: document.getElementById("profilePage"),
   youtube: document.getElementById("youtubePage"),
+  playlist: document.getElementById("playlistPage"),
   settings: document.getElementById("settingsPage")
 };
 
@@ -52,6 +53,7 @@ const pageLabels = {
   tools: "Tools",
   profile: "Profil",
   youtube: "YouTube",
+  playlist: "Playlist",
   settings: "Pengaturan"
 };
 
@@ -197,10 +199,49 @@ fetch("/api/me", { credentials: "same-origin" })
 // ===== YouTube: cari & tonton di dashboard =====
 const ytSearchForm = document.getElementById("ytSearchForm");
 const ytSearchInput = document.getElementById("ytSearchInput");
+const ytClearInput = document.getElementById("ytClearInput");
 const ytResults = document.getElementById("ytResults");
+const ytResultsHead = document.getElementById("ytResultsHead");
+const ytResultsCount = document.getElementById("ytResultsCount");
+const ytClearResults = document.getElementById("ytClearResults");
 const ytEmptySlate = document.getElementById("ytEmptySlate");
 const ytPlayerWrap = document.getElementById("ytPlayerWrap");
-const ytPlayer = document.getElementById("ytPlayer");
+const ytPlayerFrame = document.getElementById("ytPlayerFrame");
+const ytAudioBar = document.getElementById("ytAudioBar");
+const ytAudioTitle = document.getElementById("ytAudioTitle");
+const ytAudioModeToggle = document.getElementById("ytAudioModeToggle");
+const playlistResults = document.getElementById("playlistResults");
+const playlistEmptySlate = document.getElementById("playlistEmptySlate");
+
+const YT_AUDIO_MODE_KEY = "kontools_yt_audio_mode";
+let ytPlayerInstance = null;
+let ytApiReady = false;
+let ytPendingVideo = null;
+let currentPlaylist = [];
+
+function toggleYtClearInputBtn() {
+  ytClearInput.hidden = ytSearchInput.value.length === 0;
+}
+ytSearchInput.addEventListener("input", toggleYtClearInputBtn);
+ytClearInput.addEventListener("click", () => {
+  ytSearchInput.value = "";
+  toggleYtClearInputBtn();
+  ytSearchInput.focus();
+});
+
+function resetYtResultsView() {
+  ytResults.innerHTML = "";
+  ytResultsHead.hidden = true;
+  ytPlayerWrap.hidden = true;
+  if (ytPlayerInstance && ytPlayerInstance.stopVideo) ytPlayerInstance.stopVideo();
+  ytEmptySlate.hidden = false;
+  ytEmptySlate.querySelector("h3").textContent = "Cari video untuk mulai nonton";
+  ytEmptySlate.querySelector("p").textContent = "Hasil pencarian akan muncul di sini dan bisa langsung diputar tanpa keluar dashboard.";
+}
+ytClearResults.addEventListener("click", () => {
+  resetYtResultsView();
+  if (window.playTouchSound) window.playTouchSound();
+});
 
 function escapeHtml(text) {
   const div = document.createElement("div");
@@ -208,31 +249,175 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-function playYoutubeVideo(videoId) {
-  ytPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+// ----- Mode Hemat Data (audio-only visual) -----
+ytAudioModeToggle.checked = localStorage.getItem(YT_AUDIO_MODE_KEY) === "1";
+
+function applyAudioModeVisual() {
+  const on = ytAudioModeToggle.checked;
+  ytPlayerFrame.classList.toggle("audio-hidden", on);
+  ytAudioBar.hidden = !on;
+  if (on && ytPlayerInstance && ytPlayerInstance.setPlaybackQuality) {
+    try { ytPlayerInstance.setPlaybackQuality("tiny"); } catch (e) {}
+  }
+}
+ytAudioModeToggle.addEventListener("change", () => {
+  localStorage.setItem(YT_AUDIO_MODE_KEY, ytAudioModeToggle.checked ? "1" : "0");
+  applyAudioModeVisual();
+  if (window.playTouchSound) window.playTouchSound();
+});
+
+// ----- Player via YouTube IFrame API resmi -----
+function loadYoutubeIframeApi() {
+  if (window.YT && window.YT.Player) { ytApiReady = true; return; }
+  if (document.getElementById("ytIframeApiScript")) return;
+  const tag = document.createElement("script");
+  tag.id = "ytIframeApiScript";
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(tag);
+}
+window.onYouTubeIframeAPIReady = function () {
+  ytApiReady = true;
+  if (ytPendingVideo) {
+    createOrLoadPlayer(ytPendingVideo.videoId, ytPendingVideo.title);
+    ytPendingVideo = null;
+  }
+};
+
+function createOrLoadPlayer(videoId, title) {
+  ytAudioTitle.textContent = title || "";
+  if (ytPlayerInstance && ytPlayerInstance.loadVideoById) {
+    ytPlayerInstance.loadVideoById(videoId);
+    applyAudioModeVisual();
+    return;
+  }
+  ytPlayerInstance = new YT.Player("ytPlayer", {
+    videoId,
+    playerVars: { autoplay: 1, playsinline: 1 },
+    events: {
+      onReady: applyAudioModeVisual,
+      onStateChange: applyAudioModeVisual
+    }
+  });
+}
+
+function playYoutubeVideo(videoId, title) {
   ytPlayerWrap.hidden = false;
   ytPlayerWrap.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (!ytApiReady) {
+    ytPendingVideo = { videoId, title };
+    loadYoutubeIframeApi();
+    return;
+  }
+  createOrLoadPlayer(videoId, title);
 }
+
+// ----- Simpan/hapus ke Playlist -----
+async function addToPlaylist(item, btn) {
+  try {
+    const response = await fetch("/api/playlist", {
+      method: "POST", headers: { "Content-Type": "application/json" }, credentials: "same-origin",
+      body: JSON.stringify(item)
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Gagal menyimpan ke playlist.");
+    currentPlaylist = data.playlist || [];
+    renderPlaylist();
+    if (window.playSuccessSound) window.playSuccessSound();
+    showToast("Ditambahkan ke playlist.");
+  } catch (error) {
+    if (window.playErrorSound) window.playErrorSound();
+    showToast(error.message);
+  }
+}
+
+async function removeFromPlaylist(videoId) {
+  try {
+    const response = await fetch(`/api/playlist/${encodeURIComponent(videoId)}`, {
+      method: "DELETE", credentials: "same-origin"
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Gagal menghapus dari playlist.");
+    currentPlaylist = data.playlist || [];
+    renderPlaylist();
+    if (window.playTouchSound) window.playTouchSound();
+    showToast("Dihapus dari playlist.");
+  } catch (error) {
+    if (window.playErrorSound) window.playErrorSound();
+    showToast(error.message);
+  }
+}
+
+function renderPlaylist() {
+  playlistResults.innerHTML = "";
+  if (!currentPlaylist.length) {
+    playlistEmptySlate.hidden = false;
+    return;
+  }
+  playlistEmptySlate.hidden = true;
+  currentPlaylist.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "yt-card";
+    card.innerHTML = `
+      <div class="yt-thumb-wrap">
+        <img class="yt-thumb" src="${item.thumbnail}" alt="" loading="lazy">
+        <button class="yt-remove-btn" type="button" aria-label="Hapus dari playlist">&times;</button>
+      </div>
+      <div class="yt-card-body">
+        <strong>${escapeHtml(item.title)}</strong>
+        <small>${escapeHtml(item.channel)}</small>
+      </div>`;
+    card.querySelector(".yt-remove-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      removeFromPlaylist(item.videoId);
+    });
+    card.addEventListener("click", () => {
+      showPage("youtube");
+      playYoutubeVideo(item.videoId, item.title);
+    });
+    playlistResults.appendChild(card);
+  });
+}
+
+function loadPlaylist() {
+  fetch("/api/playlist", { credentials: "same-origin" })
+    .then(r => r.json())
+    .then(data => {
+      currentPlaylist = (data && data.playlist) || [];
+      renderPlaylist();
+    })
+    .catch(() => {});
+}
+loadPlaylist();
 
 function renderYtResults(items) {
   ytResults.innerHTML = "";
   if (!items.length) {
+    ytResultsHead.hidden = true;
     ytEmptySlate.hidden = false;
     ytEmptySlate.querySelector("h3").textContent = "Tidak ada hasil";
     ytEmptySlate.querySelector("p").textContent = "Coba kata kunci lain.";
     return;
   }
   ytEmptySlate.hidden = true;
+  ytResultsHead.hidden = false;
+  ytResultsCount.textContent = `${items.length} hasil ditemukan`;
   items.forEach(item => {
     const card = document.createElement("div");
     card.className = "yt-card";
     card.innerHTML = `
-      <img class="yt-thumb" src="${item.thumbnail}" alt="" loading="lazy">
+      <div class="yt-thumb-wrap">
+        <img class="yt-thumb" src="${item.thumbnail}" alt="" loading="lazy">
+        <button class="yt-add-btn" type="button" aria-label="Simpan ke playlist">+</button>
+      </div>
       <div class="yt-card-body">
         <strong>${escapeHtml(item.title)}</strong>
         <small>${escapeHtml(item.channel)}</small>
       </div>`;
-    card.addEventListener("click", () => playYoutubeVideo(item.videoId));
+    card.querySelector(".yt-add-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      addToPlaylist(item);
+    });
+    card.addEventListener("click", () => playYoutubeVideo(item.videoId, item.title));
     ytResults.appendChild(card);
   });
 }
@@ -243,6 +428,7 @@ if (ytSearchForm) {
     const q = ytSearchInput.value.trim();
     if (!q) return;
     ytResults.innerHTML = "";
+    ytResultsHead.hidden = true;
     ytEmptySlate.hidden = false;
     ytEmptySlate.querySelector("h3").textContent = "Mencari...";
     ytEmptySlate.querySelector("p").textContent = "Sebentar ya.";
