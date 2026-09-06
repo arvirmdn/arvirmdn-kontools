@@ -43,6 +43,7 @@ const pages = {
   overview: document.getElementById("overviewPage"),
   tools: document.getElementById("toolsPage"),
   profile: document.getElementById("profilePage"),
+  youtube: document.getElementById("youtubePage"),
   settings: document.getElementById("settingsPage")
 };
 
@@ -50,6 +51,7 @@ const pageLabels = {
   overview: "Overview",
   tools: "Tools",
   profile: "Profil",
+  youtube: "YouTube",
   settings: "Pengaturan"
 };
 
@@ -191,3 +193,69 @@ fetch("/api/me", { credentials: "same-origin" })
     document.getElementById("profileEmailValue").textContent = user.email;
   })
   .catch(() => window.location.assign("/"));
+
+// ===== YouTube: cari & tonton di dashboard =====
+const ytSearchForm = document.getElementById("ytSearchForm");
+const ytSearchInput = document.getElementById("ytSearchInput");
+const ytResults = document.getElementById("ytResults");
+const ytEmptySlate = document.getElementById("ytEmptySlate");
+const ytPlayerWrap = document.getElementById("ytPlayerWrap");
+const ytPlayer = document.getElementById("ytPlayer");
+
+function escapeHtml(text) {
+  const div = document.createElement("div");
+  div.textContent = text || "";
+  return div.innerHTML;
+}
+
+function playYoutubeVideo(videoId) {
+  ytPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+  ytPlayerWrap.hidden = false;
+  ytPlayerWrap.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderYtResults(items) {
+  ytResults.innerHTML = "";
+  if (!items.length) {
+    ytEmptySlate.hidden = false;
+    ytEmptySlate.querySelector("h3").textContent = "Tidak ada hasil";
+    ytEmptySlate.querySelector("p").textContent = "Coba kata kunci lain.";
+    return;
+  }
+  ytEmptySlate.hidden = true;
+  items.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "yt-card";
+    card.innerHTML = `
+      <img class="yt-thumb" src="${item.thumbnail}" alt="" loading="lazy">
+      <div class="yt-card-body">
+        <strong>${escapeHtml(item.title)}</strong>
+        <small>${escapeHtml(item.channel)}</small>
+      </div>`;
+    card.addEventListener("click", () => playYoutubeVideo(item.videoId));
+    ytResults.appendChild(card);
+  });
+}
+
+if (ytSearchForm) {
+  ytSearchForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const q = ytSearchInput.value.trim();
+    if (!q) return;
+    ytResults.innerHTML = "";
+    ytEmptySlate.hidden = false;
+    ytEmptySlate.querySelector("h3").textContent = "Mencari...";
+    ytEmptySlate.querySelector("p").textContent = "Sebentar ya.";
+    try {
+      const response = await fetch(`/api/youtube/search?q=${encodeURIComponent(q)}`, { credentials: "same-origin" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Gagal mencari video.");
+      renderYtResults(data.items || []);
+    } catch (error) {
+      if (window.playErrorSound) window.playErrorSound();
+      ytEmptySlate.hidden = false;
+      ytEmptySlate.querySelector("h3").textContent = "Gagal mencari video";
+      ytEmptySlate.querySelector("p").textContent = error.message;
+    }
+  });
+}

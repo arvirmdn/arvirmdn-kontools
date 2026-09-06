@@ -47,6 +47,10 @@
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.4-3.6 4.2-5.4 7-5.4S18.6 16.4 20 20"/></svg>
         Profil
       </button>
+      <button class="nav-item" type="button" data-page="youtube">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10.5 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg>
+        YouTube
+      </button>
       <button class="nav-item" type="button" data-page="settings">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 12.9a7.4 7.4 0 000-1.8l1.9-1.5-2-3.4-2.2.9a7.3 7.3 0 00-1.5-.9L15.3 4h-4l-.3 2.2a7.3 7.3 0 00-1.5.9l-2.2-.9-2 3.4L7.2 11a7.4 7.4 0 000 1.8l-1.9 1.5 2 3.4 2.2-.9c.5.4 1 .7 1.5.9l.3 2.3h4l.3-2.2c.5-.2 1-.5 1.5-.9l2.2.9 2-3.4-1.9-1.6z"/></svg>
         Pengaturan
@@ -191,6 +195,33 @@
               <button class="primary-btn" type="submit">Simpan Sandi</button>
             </form>
           </div>
+        </div>
+      </section>
+
+      <section id="youtubePage" class="page">
+        <div class="page-head-row">
+          <div><h1>YouTube</h1><p>Cari video dan tonton langsung di dashboard.</p></div>
+        </div>
+
+        <form id="ytSearchForm" class="yt-search-row">
+          <input id="ytSearchInput" type="text" placeholder="Cari video, channel, atau topik..." autocomplete="off" required>
+          <button class="primary-btn" type="submit">Cari</button>
+        </form>
+
+        <div id="ytPlayerWrap" class="yt-player-wrap" hidden>
+          <div class="yt-player-frame">
+            <iframe id="ytPlayer" src="" title="YouTube player" frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen></iframe>
+          </div>
+        </div>
+
+        <div id="ytResults" class="yt-results-grid"></div>
+
+        <div id="ytEmptySlate" class="empty-slate sheet">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10.5 9.5l5 2.5-5 2.5z" fill="currentColor" stroke="none"/></svg>
+          <h3>Cari video untuk mulai nonton</h3>
+          <p>Hasil pencarian akan muncul di sini dan bisa langsung diputar tanpa keluar dashboard.</p>
         </div>
       </section>
 
